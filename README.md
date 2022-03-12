@@ -9,6 +9,12 @@
 - You also need to create an s3 bucket (easy, just a couple of clicks from the AWS website).
 - You need to set up a role to allow interaction with other AWS services within Fargate by following `Step 2` in these instructions: https://www.notion.so/Creating-k6-custom-image-and-assigning-role-to-call-s3-bucket-26b332ea776943169d1ae6a3c80b8ea2
 ## Running a test
+- In the `initial-script/index.js` file, the `runTestCommand` needs to be modified to your own values for `task-definition`, `cluster`, and `network-configuration`
+  - `task-definition` is just the name and revision of the task you will be running
+  - `cluster` is the name of your cluster
+  - For network configuration, you need to change `subnets` and `security-groups` to match yours
+    - Example: awsvpcConfiguration={subnets=[subnet-`yourSubnetID`],securityGroups=[sg-`yourSecurityGroupId`],assignPublicIp=ENABLED}
+    - In the VPC Dashboard, you can click on the `subnets` and `security groups` section to find these values. As far as I know, any should work.
 - On the command line, type `node index.js [script name] [number of tests to run]`
 - Example: `node index.js script.js 5`
 - The example above will run five k6 tests using `script.js`
