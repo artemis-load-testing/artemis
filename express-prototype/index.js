@@ -30,6 +30,8 @@ app.get('/isTestComplete', (request, response) => {
 
 // endpoint that runs the test
 app.get('/run', async (request, response) => {
+  response.json({ container: 'test running' }).status(200);
+
   const s3 = new aws.S3();
 
   const REGION = 'us-west-2';
@@ -68,8 +70,10 @@ app.get('/run', async (request, response) => {
   };
 
   const pushObject = async () => {
-    const results = fs.readFileSync('results.json', 'utf-8');
-    const resultName = `results-${uniqueId(8)}-${Date.now()}.json`;
+    // const results = fs.readFileSync('results.json', 'utf-8');
+    // const resultName = `results-${uniqueId(8)}-${Date.now()}.json`;
+    const results = fs.readFileSync('results.csv', 'utf-8');
+    const resultName = `results-${uniqueId(8)}-${Date.now()}.csv`;
     const params = {
       Bucket: BUCKET,
       Key: resultName,
@@ -100,7 +104,8 @@ app.get('/run', async (request, response) => {
 
   const runTest = async () => {
     try {
-      const output = await exec('k6 run --out json=results.json script.js');
+      // const output = await exec('k6 run --out json=results.json script.js');
+      const output = await exec('k6 run --out csv=results.csv script.js');
       console.log(output.stdout);
       console.log('Test finished running!');
     } catch (e) {
@@ -117,7 +122,6 @@ app.get('/run', async (request, response) => {
 
   await fetchScriptAndRun();
   testCompleted = true;
-  response.json({ container: 'test completed' }).status(200);
 });
 
 app.get('/stop', (request, response) => {
