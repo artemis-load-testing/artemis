@@ -72,8 +72,12 @@ app.get('/run', async (request, response) => {
   const pushObject = async () => {
     // const results = fs.readFileSync('results.json', 'utf-8');
     // const resultName = `results-${uniqueId(8)}-${Date.now()}.json`;
+    // const results = fs.readFileSync('summary.html', 'utf-8');
+    // const resultName = `summary-${uniqueId(8)}-${Date.now()}.html`;
+
     const results = fs.readFileSync('results.csv', 'utf-8');
     const resultName = `results-${uniqueId(8)}-${Date.now()}.csv`;
+
     const params = {
       Bucket: BUCKET,
       Key: resultName,
@@ -106,6 +110,8 @@ app.get('/run', async (request, response) => {
     try {
       // const output = await exec('k6 run --out json=results.json script.js');
       const output = await exec('k6 run --out csv=results.csv script.js');
+      // const output = await exec('k6 run script.js');
+
       console.log(output.stdout);
       console.log('Test finished running!');
     } catch (e) {
