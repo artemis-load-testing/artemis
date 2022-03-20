@@ -10,6 +10,7 @@ import {
   PolicyStatement,
   Role,
   ServicePrincipal,
+  ManagedPolicy,
 } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import { Code, Runtime } from "aws-cdk-lib/aws-lambda";
@@ -128,6 +129,11 @@ export class AwsStack extends Stack {
                 actions: ["s3:CreateBucket"],
                 resources: ["*"], // re-evaluate
               }),
+              new PolicyStatement({
+                effect: Effect.ALLOW,
+                actions: ["sts:AssumeRole"],
+                resources: ["*"], // re-evaluate
+              }),
             ],
           }),
         },
@@ -136,23 +142,11 @@ export class AwsStack extends Stack {
 
     const runTaskRole = new Role(this, "runTaskRole", {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-      inlinePolicies: {
-        TaskStatusPolicy: new PolicyDocument({
-          statements: [
-            new PolicyStatement({
-              effect: Effect.ALLOW,
-              actions: ["ecs:RunTask"],
-              resources: ["*"], // re-evaluate
-            }),
-            new PolicyStatement({
-              effect: Effect.ALLOW,
-              actions: ["ec2:describeSubnets"],
-              resources: ["*"], // re-evaluate
-            }),
-          ],
-        }),
-      },
     });
+
+    runTaskRole.addManagedPolicy(
+      ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess")
+    );
 
     // LAMBDAS
     // starting lambda
@@ -190,6 +184,7 @@ export class AwsStack extends Stack {
       runtime: lambda.Runtime.NODEJS_14_X,
       environment: {
         TASK_CLUSTER: cluster.clusterName,
+        NUM_TASKS: "3",
       },
     });
 

@@ -1,49 +1,19 @@
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-// const { s3Client } = require("./libs/s3Client.js";
-const { readFile } = require("fs");
-const { promisify } = require("util");
+const AWS = require("aws-sdk");
+const s3 = new AWS.S3();
 
-const fileName = "./script.js";
+exports.handler = async (event, context) => {
+  const bucket = "team-7-bucket";
+  const fileName = "testing.json";
 
-// import { S3Client } from "@aws-sdk/client-s3"
-
-// const REGION = "us-west-2";
-// const s3Client = new S3Client({ region: REGION });
-// export { s3Client };
-
-exports.handler = async () => {
-  const run = async (testContent, key) => {
-    const params = {
-      Bucket: "team-7-bucket",
-      Key: key,
-      Body: testContent,
-    };
-
-    try {
-      await S3Client.send(new PutObjectCommand(params));
-      console.log(
-        "Successfully created " +
-          params.Key +
-          " and uploaded it to " +
-          params.Bucket +
-          "/" +
-          params.Key
-      );
-    } catch (err) {
-      console.log("Error", err);
-    }
+  const bucketParams = {
+    Bucket: bucket,
+    Key: fileName,
+    Body: '{"test" : "test-body"}',
   };
 
-  const readFile = (fileName) => promisify(_readFile)(fileName, "utf8");
+  await s3.upload(bucketParams).promise();
 
-  async function uploadTestScript(fileName) {
-    try {
-      let testContent = await readFile(fileName);
-      run(testContent, fileName);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  uploadTestScript(fileName);
+  console.log("Put complete");
 };
+
+const readFile = (fileName) => promisify(_readFile)(fileName, "utf8");
