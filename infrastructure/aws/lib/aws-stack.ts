@@ -149,38 +149,25 @@ export class AwsStack extends Stack {
     );
 
     // LAMBDAS
-    // starting lambda
-    // const startingLambda = new lambda.Function(this, "starting-lambda", {
-    //   handler: "index.handler",
-    //   code: lambda.Code.fromAsset(path.join(__dirname, "starting-lambda")),
-    //   runtime: lambda.Runtime.NODEJS_14_X,
-    //   environment: {
-    //     TASK_CLUSTER_NAME: cluster.clusterName,
-    //     TASK_DEFINITION: fargateTaskDefinition.taskDefinitionArn,
-    //     VPC: vpc.vpcArn,
-    //   },
-    // });
-
-    // uploadTestScriptToS3 Lambda
     const uploadTestScriptToS3 = new lambda.Function(
       this,
       "uploadTestScriptToS3",
       {
         handler: "index.handler",
         role: uploadTestScriptToS3Role,
-        code: lambda.Code.fromAsset(path.join(__dirname, "upload-test-script")),
+        code: lambda.Code.fromAsset(
+          path.join(__dirname, "../resources/upload-test-script")
+        ),
         runtime: lambda.Runtime.NODEJS_14_X,
-        // environment: {
-        //   TASK_CLUSTER: cluster.clusterName,
-        // },
       }
     );
 
-    // runTask lambda
     const runTaskLambda = new lambda.Function(this, "run-task", {
       handler: "index.handler",
       role: runTaskRole, // update
-      code: lambda.Code.fromAsset(path.join(__dirname, "run-task")),
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, "../resources/run-task")
+      ),
       runtime: lambda.Runtime.NODEJS_14_X,
       environment: {
         TASK_CLUSTER: cluster.clusterName,
@@ -188,34 +175,20 @@ export class AwsStack extends Stack {
       },
     });
 
-    // task status checker
-    const taskStatusChecker = new lambda.Function(this, "task-status-checker", {
-      handler: "index.handler",
-      role: taskStatusCheckerRole,
-      code: lambda.Code.fromAsset(path.join(__dirname, "task-status-checker")),
-      runtime: lambda.Runtime.NODEJS_14_X,
-      environment: {
-        TASK_CLUSTER: cluster.clusterName,
-      },
-    });
-
-    // const noRunningTests = new Pass(this, "No running tests"); // need to end (e.g., "End": true)
-    const noRunningTests = new Succeed(this, "Done!");
-
-    const checkRunningTests = new LambdaInvoke(this, "Check running tests", {
-      lambdaFunction: taskStatusChecker,
-      inputPath: "$",
-      outputPath: "$.Payload",
-      // resultPath: "$.tasksRunning",
-    });
-
-    checkRunningTests.next(noRunningTests);
-
-    // STEP FUNCTION
-    const taskStepFunction = new StateMachine(this, "TaskStepFunctions", {
-      definition: Chain.start(checkRunningTests),
-    });
-
-    console.log(taskStepFunction.stateMachineArn);
+    const taskStatusChecker = new lambda.Function(
+      this,
+      "../resources/task-status-checker",
+      {
+        handler: "index.handler",
+        role: taskStatusCheckerRole,
+        code: lambda.Code.fromAsset(
+          path.join(__dirname, "task-status-checker")
+        ),
+        runtime: lambda.Runtime.NODEJS_14_X,
+        environment: {
+          TASK_CLUSTER: cluster.clusterName,
+        },
+      }
+    );
   }
 }
