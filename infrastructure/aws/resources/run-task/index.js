@@ -17,8 +17,9 @@ const retrieveSubnets = async (vpcId) => {
   const subnetIds = subnets.Subnets.map((subnet) => subnet.SubnetId);
   return [subnetIds[0]];
 };
+
 exports.handler = async (event) => {
-  const VPC_ID = "vpc-0315de4e949a30efb";
+  const VPC_ID = process.env.VPC_ID;
   const subnets = await retrieveSubnets(VPC_ID);
   const count = event.taskCount;
 
@@ -33,6 +34,14 @@ exports.handler = async (event) => {
         assignPublicIp: "ENABLED",
       },
     },
+    overrides: {
+      containerOverrides: [{
+        name: process.env.TASK_IMAGE,
+        environment: [
+          { name: 'ORIGIN_TIMESTAMP', value: event.originTimestamp }
+        ]
+      }]
+    }
   };
 
   try {

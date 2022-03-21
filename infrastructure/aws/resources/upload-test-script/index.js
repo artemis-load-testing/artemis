@@ -2,7 +2,7 @@ const AWS = require("aws-sdk");
 const s3 = new AWS.S3();
 
 exports.handler = async (event, context) => {
-  const bucket = "team-7-bucket";
+  const bucket = "upload-from-lambda-test";
   const fileName = "testing.json";
 
   const bucketParams = {

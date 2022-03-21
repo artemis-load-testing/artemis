@@ -1,5 +1,5 @@
 const AWS = require("aws-sdk");
-AWS.config.update({ region: "us-east-1" });
+AWS.config.update({ region: "us-west-2" }); // change region
 const s3 = new AWS.S3();
 const lambda = new AWS.Lambda();
 const fs = require("fs");
@@ -23,7 +23,7 @@ const uploadToBucket = async (bucketParams) => {
 
 const run = async (testContent, key) => {
   const params = {
-    Bucket: "artemis7-bucket",
+    Bucket: "super-artemis7-bucket",
     Key: key,
     Body: testContent,
   };
@@ -56,15 +56,26 @@ const runTaskLambda = async (payload) => {
     Pass the task count and origin timestamp in the payload
     Invoke the lambda
   */
+  const threeMinutes = 60 * 3 * 1000;
+  const originTimestamp = Date.now() + threeMinutes;
   const lambdas = await lambda.listFunctions({}).promise();
   const runTaskLambda = lambdas.Functions.find((lambda) =>
     lambda.FunctionName.startsWith("AwsStack-runtask")
   );
 
+  const taskCount = payload.taskCount;
+  const testId = payload.testId;
+
+  const taskConfig = {
+    taskCount,
+    testId,
+    originTimestamp
+  }
+
   const params = {
     FunctionName: runTaskLambda.FunctionName,
     InvocationType: "Event",
-    Payload: JSON.stringify(payload),
+    Payload: JSON.stringify(taskConfig),
     // Payload: { count: taskCount },
   };
 
