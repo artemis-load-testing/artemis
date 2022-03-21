@@ -19,6 +19,12 @@ const retrieveSubnets = async (vpcId) => {
 };
 
 exports.handler = async (event) => {
+  console.log("vpcid ", process.env.VPC_ID);
+  console.log("cluster ", process.env.TASK_CLUSTER);
+  console.log("definition ", process.env.TASK_DEFINITION);
+  console.log("image ", process.env.TASK_IMAGE);
+  console.log(event.originTimestamp);
+
   const VPC_ID = process.env.VPC_ID;
   const subnets = await retrieveSubnets(VPC_ID);
   const count = event.taskCount;
@@ -38,7 +44,7 @@ exports.handler = async (event) => {
       containerOverrides: [{
         name: process.env.TASK_IMAGE,
         environment: [
-          { name: 'ORIGIN_TIMESTAMP', value: event.originTimestamp }
+          { name: 'ORIGIN_TIMESTAMP', value: String(event.originTimestamp) }
         ]
       }]
     }

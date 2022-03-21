@@ -75,8 +75,15 @@ export class AwsStack extends Stack {
       }
     );
 
-    fargateTaskDefinition.addContainer("k6Container", {
-      image: ecs.ContainerImage.fromRegistry("charleshartman/artemis:latest"),
+    fargateTaskDefinition.addContainer("artemis-container", {
+      image: ecs.ContainerImage.fromEcrRepository(
+        Repository.fromRepositoryName(
+          this,
+          "artemis-test",
+          "artemis-test"
+        )
+      ),
+      // image: ecs.ContainerImage.fromRegistry("artemis-test:latest"),
       // image: ecs.ContainerImage.fromEcrRepository(
       //   Repository.fromRepositoryName(
       //     this,
@@ -142,6 +149,27 @@ export class AwsStack extends Stack {
 
     const runTaskRole = new Role(this, "runTaskRole", {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+      inlinePolicies: {
+        TaskStatusPolicy: new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              actions: ["logs:CreateLogGroup"],
+              resources: ["*"], // re-evaluate
+            }),
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              actions: ["logs:CreateLogStream"],
+              resources: ["*"], // re-evaluate
+            }),
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              actions: ["logs:PutLogEvents"],
+              resources: ["*"], // re-evaluate
+            }),
+          ],
+        }),
+      },
     });
 
     runTaskRole.addManagedPolicy(
@@ -161,7 +189,8 @@ export class AwsStack extends Stack {
         TASK_CLUSTER: cluster.clusterName,
         TASK_DEFINITION: fargateTaskDefinition.taskDefinitionArn,
         VPC_ID: vpc.vpcId,
-        TASK_IMAGE: `${Aws.STACK_NAME}-load-tester`,
+        // TASK_IMAGE: fargateTaskDefinition.defaultContainer.containerName,
+        TASK_IMAGE: "artemis-container",
       },
     });
 

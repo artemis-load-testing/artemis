@@ -23,7 +23,7 @@ const uploadToBucket = async (bucketParams) => {
 
 const run = async (testContent, key) => {
   const params = {
-    Bucket: "super-artemis7-bucket",
+    Bucket: "woof-woof-223",
     Key: key,
     Body: testContent,
   };
@@ -56,6 +56,7 @@ const runTaskLambda = async (payload) => {
     Pass the task count and origin timestamp in the payload
     Invoke the lambda
   */
+
   const threeMinutes = 60 * 3 * 1000;
   const originTimestamp = Date.now() + threeMinutes;
   const lambdas = await lambda.listFunctions({}).promise();
@@ -69,8 +70,8 @@ const runTaskLambda = async (payload) => {
   const taskConfig = {
     taskCount,
     testId,
-    originTimestamp
-  }
+    originTimestamp,
+  };
 
   const params = {
     FunctionName: runTaskLambda.FunctionName,

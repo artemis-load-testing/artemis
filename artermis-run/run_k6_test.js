@@ -10,8 +10,7 @@ const fetchObject = async (fileName) => {
   try {
     const response = await s3
       .getObject({
-        // Bucket: 'k6-test-storage-bin-1',
-        Bucket: "super-artemis7-bucket",
+        Bucket: "super-artemis7-bucket", // change to env variable
         Key: fileName,
       })
       .promise();
@@ -32,10 +31,8 @@ const fetchObject = async (fileName) => {
 const runTest = async () => {
   try {
     console.log("I am about to run, will this work? Wait to find out...");
-    // const output = await exec('k6 run --out influxdb=http://54.202.242.79:8186 script.js');
     const output = await exec(
-      // 'k6 run --out influxdb=http://artemis-telegraf.artemis:8186 script.js'
-      "k6 run script.js"
+      'k6 run script.js'
     );
     console.log(output.stdout);
     console.log("Test finished running!");
@@ -49,14 +46,12 @@ const sleep = (ms) => {
 };
 
 const fetchScriptAndRun = async () => {
-  const originTimestamp = process.env.ORIGIN_TIMESTAMP;
+  const originTimestamp = process.env.ORIGIN_TIMESTAMP; // string atm, need to convert to integer
   const currentTime = Date.now();
   const waitTime =
     currentTime < originTimestamp ? originTimestamp - currentTime : 0;
 
   await fetchObject(fileName);
-  // setTimeout(async () => { await runTest() }, waitTime);
-
   async function delay() {
     console.log(
       "originTimestamp ",
