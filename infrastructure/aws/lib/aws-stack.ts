@@ -171,24 +171,20 @@ export class AwsStack extends Stack {
       runtime: lambda.Runtime.NODEJS_14_X,
       environment: {
         TASK_CLUSTER: cluster.clusterName,
-        NUM_TASKS: "3",
+        TASK_DEFINITION: fargateTaskDefinition.taskDefinitionArn,
       },
     });
 
-    const taskStatusChecker = new lambda.Function(
-      this,
-      "../resources/task-status-checker",
-      {
-        handler: "index.handler",
-        role: taskStatusCheckerRole,
-        code: lambda.Code.fromAsset(
-          path.join(__dirname, "task-status-checker")
-        ),
-        runtime: lambda.Runtime.NODEJS_14_X,
-        environment: {
-          TASK_CLUSTER: cluster.clusterName,
-        },
-      }
-    );
+    const taskStatusChecker = new lambda.Function(this, "task-status-checker", {
+      handler: "index.handler",
+      role: taskStatusCheckerRole,
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, "../resources/task-status-checker")
+      ),
+      runtime: lambda.Runtime.NODEJS_14_X,
+      environment: {
+        TASK_CLUSTER: cluster.clusterName,
+      },
+    });
   }
 }

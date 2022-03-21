@@ -20,13 +20,13 @@ const retrieveSubnets = async (vpcId) => {
 exports.handler = async (event) => {
   const VPC_ID = "vpc-0315de4e949a30efb";
   const subnets = await retrieveSubnets(VPC_ID);
+  const count = event.taskCount;
 
   const taskParams = {
     cluster: process.env.TASK_CLUSTER,
-    taskDefinition:
-      "arn:aws:ecs:us-east-1:212969361077:task-definition/AwsStacktaskdefDCFBA26C:6",
+    taskDefinition: process.env.TASK_DEFINITION,
     launchType: "FARGATE",
-    count: process.env.NUM_TASKS,
+    count,
     networkConfiguration: {
       awsvpcConfiguration: {
         subnets,

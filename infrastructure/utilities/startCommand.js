@@ -7,7 +7,7 @@ const util = require("util");
 
 const createBucket = async (bucketParams) => {
   try {
-    s3.createBucket(bucketParams);
+    await s3.createBucket(bucketParams).promise();
   } catch (err) {
     console.log(err);
   }
@@ -28,26 +28,43 @@ const run = async (testContent, key) => {
     Body: testContent,
   };
 
-  createBucket(params);
-  uploadToBucket(params);
+  await createBucket({ Bucket: params.Bucket });
+  await uploadToBucket(params);
 };
 
 // const readFile = (fileName) => util.promisify(fs.readFile)(fileName, "utf8");
 
 const uploadTestScript = async (fileName) => {
   try {
+    /*
+    Look for a file named test_script.js
+    If it doesn't exist then ask the user to choose a directory or the test file. 
+      If the user selects a directory, then repeat recursively until a file is chosen. 
+      Once a file is chosen, upload the selected file.
+    */
     let testContent = fs.readFileSync(fileName, "utf8");
-    run(testContent, fileName);
+    run(testContent, "test_script.js");
   } catch (error) {
     console.error(error);
   }
 };
 
-const runTaskLambda = async () => {
+const runTaskLambda = async (payload) => {
+  /*
+    Find the lambda with the runTask name
+    Calculate the origin timestamp (current time + 3 mins)
+    Pass the task count and origin timestamp in the payload
+    Invoke the lambda
+  */
+  const lambdas = await lambda.listFunctions({}).promise();
+  const runTaskLambda = lambdas.Functions.find((lambda) =>
+    lambda.FunctionName.startsWith("AwsStack-runtask")
+  );
+
   const params = {
-    FunctionName:
-      "arn:aws:lambda:us-east-1:212969361077:function:AwsStack-runtask17F4DC48-6eJL3tX5uYZ1",
+    FunctionName: runTaskLambda.FunctionName,
     InvocationType: "Event",
+    Payload: JSON.stringify(payload),
     // Payload: { count: taskCount },
   };
 
