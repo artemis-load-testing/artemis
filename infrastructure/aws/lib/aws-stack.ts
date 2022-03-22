@@ -64,8 +64,8 @@ export class AwsStack extends Stack {
       this,
       "taskdef",
       {
-        memoryLimitMiB: 1024,
-        cpu: 512,
+        memoryLimitMiB: 512,
+        cpu: 256,
         taskRole: Role.fromRoleName(this, "taskRole", "ecsTaskExecutionRole"),
         executionRole: Role.fromRoleName(
           this,
@@ -77,12 +77,11 @@ export class AwsStack extends Stack {
 
     fargateTaskDefinition.addContainer("artemis-container", {
       image: ecs.ContainerImage.fromEcrRepository(
-        Repository.fromRepositoryName(
-          this,
-          "artemis-test",
-          "artemis-test"
-        )
+        Repository.fromRepositoryName(this, "artemis-test", "artemis-test")
       ),
+      logging: ecs.LogDriver.awsLogs({
+        streamPrefix: "artemis-container-on-fargate",
+      }),
       // image: ecs.ContainerImage.fromRegistry("artemis-test:latest"),
       // image: ecs.ContainerImage.fromEcrRepository(
       //   Repository.fromRepositoryName(
