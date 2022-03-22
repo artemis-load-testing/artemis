@@ -1,20 +1,26 @@
 const AWS = require("aws-sdk");
-AWS.config.update({ region: "us-west-2" }); // change region
+AWS.config.update({ region: "us-east-1" }); // pull region from credentials
 const s3 = new AWS.S3();
 const lambda = new AWS.Lambda();
 const fs = require("fs");
 const util = require("util");
+const stackName = "ArtemisAwsStack";
 
-const createBucket = async (bucketParams) => {
-  try {
-    await s3.createBucket(bucketParams).promise();
-  } catch (err) {
-    console.log(err);
-  }
+const getArtemisBucket = async (desiredBucketName) => {
+  const buckets = await s3.listBuckets({}).promise();
+  const artemisBucket = buckets.Buckets.find((bucket) => {
+    const bucketName = bucket.Name.toLowerCase();
+    return bucketName.includes(
+      `${stackName}-${desiredBucketName}`.toLowerCase()
+    );
+  });
+  return artemisBucket;
 };
 
 const uploadToBucket = async (bucketParams) => {
   try {
+    const artemisBucket = await getArtemisBucket(bucketParams.Bucket);
+    bucketParams.Bucket = artemisBucket.Name;
     await s3.upload(bucketParams).promise();
   } catch (err) {
     console.log(err);
@@ -23,12 +29,12 @@ const uploadToBucket = async (bucketParams) => {
 
 const run = async (testContent, key) => {
   const params = {
-    Bucket: "woof-woof-223",
+    Bucket: "artemis7bucket",
     Key: key,
     Body: testContent,
   };
 
-  await createBucket({ Bucket: params.Bucket });
+  // await createBucket({ Bucket: params.Bucket });
   await uploadToBucket(params);
 };
 
@@ -38,8 +44,8 @@ const uploadTestScript = async (fileName) => {
   try {
     /*
     Look for a file named test_script.js
-    If it doesn't exist then ask the user to choose a directory or the test file. 
-      If the user selects a directory, then repeat recursively until a file is chosen. 
+    If it doesn't exist then ask the user to choose a directory or the test file.
+      If the user selects a directory, then repeat recursively until a file is chosen.
       Once a file is chosen, upload the selected file.
     */
     let testContent = fs.readFileSync(fileName, "utf8");
@@ -60,9 +66,16 @@ const runTaskLambda = async (payload) => {
   const threeMinutes = 60 * 3 * 1000;
   const originTimestamp = Date.now() + threeMinutes;
   const lambdas = await lambda.listFunctions({}).promise();
-  const runTaskLambda = lambdas.Functions.find((lambda) =>
-    lambda.FunctionName.startsWith("AwsStack-runtask")
-  );
+  const desiredLambdaName = "runtask";
+
+  const runTaskLambda = lambdas.Functions.find((lambda) => {
+    const lambdaName = lambda.FunctionName.toLowerCase();
+    return lambdaName.includes(
+      `${stackName}-${desiredLambdaName}`.toLowerCase()
+    );
+  });
+
+  // console.log(runTaskLambda);
 
   const taskCount = payload.taskCount;
   const testId = payload.testId;
@@ -73,14 +86,14 @@ const runTaskLambda = async (payload) => {
     originTimestamp,
   };
 
-  const params = {
+  const event = {
     FunctionName: runTaskLambda.FunctionName,
     InvocationType: "Event",
     Payload: JSON.stringify(taskConfig),
     // Payload: { count: taskCount },
   };
 
-  await lambda.invoke(params).promise();
+  await lambda.invoke(event).promise();
 };
 
 module.exports = { uploadTestScript, runTaskLambda };

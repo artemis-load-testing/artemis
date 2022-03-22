@@ -46,26 +46,24 @@ export class AwsStack extends Stack {
     });
 
     // ECS
-    const cluster = new ecs.Cluster(this, "vpc-cluster", {
+    const cluster = new ecs.Cluster(this, "artemis-vpc-cluster", {
       vpc,
       containerInsights: true,
-      clusterName: "vpc-cluster",
     });
 
     // S3 bucket
-    // const bucket = new s3.Bucket(this, "team-7-bucket", {
-    //   removalPolicy: cdk.RemovalPolicy.DESTROY,
-    //   autoDeleteObjects: true,
-    //   bucketName: "team-7-bucket",
-    // });
+    const bucket = new s3.Bucket(this, "artemis-7-bucket", {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
 
     // Fargate
     const fargateTaskDefinition = new ecs.FargateTaskDefinition(
       this,
       "taskdef",
       {
-        memoryLimitMiB: 512,
-        cpu: 256,
+        memoryLimitMiB: 512, // 8192
+        cpu: 256, // 4096
         taskRole: Role.fromRoleName(this, "taskRole", "ecsTaskExecutionRole"),
         executionRole: Role.fromRoleName(
           this,
@@ -77,7 +75,11 @@ export class AwsStack extends Stack {
 
     fargateTaskDefinition.addContainer("artemis-container", {
       image: ecs.ContainerImage.fromEcrRepository(
-        Repository.fromRepositoryName(this, "artemis-test", "artemis-test")
+        Repository.fromRepositoryName(
+          this,
+          "artemis-testing",
+          "artemis-testing"
+        )
       ),
       logging: ecs.LogDriver.awsLogs({
         streamPrefix: "artemis-container-on-fargate",
@@ -190,6 +192,7 @@ export class AwsStack extends Stack {
         VPC_ID: vpc.vpcId,
         // TASK_IMAGE: fargateTaskDefinition.defaultContainer.containerName,
         TASK_IMAGE: "artemis-container",
+        BUCKET_NAME: bucket.bucketName,
       },
     });
 

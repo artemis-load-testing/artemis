@@ -10,7 +10,7 @@ const fetchObject = async (fileName) => {
   try {
     const response = await s3
       .getObject({
-        Bucket: "super-artemis7-bucket", // change to env variable
+        Bucket: process.env.BUCKET_NAME, // change to env variablef
         Key: fileName,
       })
       .promise();
@@ -31,9 +31,7 @@ const fetchObject = async (fileName) => {
 const runTest = async () => {
   try {
     console.log("I am about to run, will this work? Wait to find out...");
-    const output = await exec(
-      'k6 run script.js'
-    );
+    const output = await exec("k6 run script.js");
     console.log(output.stdout);
     console.log("Test finished running!");
   } catch (e) {
@@ -46,7 +44,7 @@ const sleep = (ms) => {
 };
 
 const fetchScriptAndRun = async () => {
-  const originTimestamp = process.env.ORIGIN_TIMESTAMP; // string atm, need to convert to integer
+  const originTimestamp = Number(process.env.ORIGIN_TIMESTAMP);
   const currentTime = Date.now();
   const waitTime =
     currentTime < originTimestamp ? originTimestamp - currentTime : 0;
