@@ -1,4 +1,35 @@
 {
+  "__inputs": [
+    {
+      "name": "Amazon Timestream",
+      "label": "Amazon Timestream",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "grafana-timestream-datasource",
+      "pluginName": "Amazon Timestream"
+    }
+  ],
+  "__elements": [],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "8.4.4"
+    },
+    {
+      "type": "datasource",
+      "id": "grafana-timestream-datasource",
+      "name": "Amazon Timestream",
+      "version": "1.5.0"
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -21,7 +52,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": null,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -99,7 +130,7 @@
           "database": "\"artemis-db\"",
           "datasource": {
             "type": "grafana-timestream-datasource",
-            "uid": "BE1KuxPnk"
+            "uid": "Amazon Timestream"
           },
           "measure": "value_count",
           "rawQuery": "SELECT time, (sum(measure_value::double) / 10) AS requests_per_second\nFROM \"artemis-db\".\"http_reqs\"\nWHERE time BETWEEN ago(1d) AND now() \nAND measure_name = 'value_sum'\nGROUP BY time\nORDER BY time ASC",
@@ -184,7 +215,7 @@
           "database": "\"artemis-db\"",
           "datasource": {
             "type": "grafana-timestream-datasource",
-            "uid": "BE1KuxPnk"
+            "uid": "Amazon Timestream"
           },
           "measure": "value_sum",
           "rawQuery": "SELECT time, avg(measure_value::double) AS http_request_duration\nFROM \"artemis-db\".\"http_req_duration\"\nWHERE time BETWEEN ago(1d) AND now() \nAND measure_name = 'value_mean'\nGROUP BY time\nORDER BY time ASC",
@@ -286,7 +317,7 @@
           "database": "\"artemis-db\"",
           "datasource": {
             "type": "grafana-timestream-datasource",
-            "uid": "BE1KuxPnk"
+            "uid": "Amazon Timestream"
           },
           "measure": "value_sum",
           "rawQuery": "SELECT time, sum(measure_value::double) AS requests_failed\nFROM \"artemis-db\".\"http_req_failed\"\nWHERE time BETWEEN ago(1d) AND now() \nAND measure_name = 'value_count'\nAND status = '0'\nGROUP BY time\nORDER BY time ASC",
@@ -371,7 +402,7 @@
           "database": "\"artemis-db\"",
           "datasource": {
             "type": "grafana-timestream-datasource",
-            "uid": "BE1KuxPnk"
+            "uid": "Amazon Timestream"
           },
           "hide": false,
           "measure": "value_sum",
@@ -410,7 +441,7 @@
     "list": []
   },
   "time": {
-    "from": "now-3h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
