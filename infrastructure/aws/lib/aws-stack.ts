@@ -229,7 +229,7 @@ export class AwsStack extends Stack {
       {
         memoryLimitMiB: 8192,
         cpu: 4096,
-        taskRole: telegrafToTimestreamRole
+        taskRole: telegrafToTimestreamRole,
         // executionRole: Role.fromRoleName(
         //   this,
         //   'executionRole',
@@ -237,6 +237,7 @@ export class AwsStack extends Stack {
         // ),
       }
     );
+    // "public.ecr.aws/g7x4r6a9/artemis/artemis-telegraf:latest"
 
     telegrafTaskDefinition.addContainer("telegraf-container", {
       image: ecs.ContainerImage.fromRegistry(
@@ -279,14 +280,16 @@ export class AwsStack extends Stack {
       cluster,
       taskDefinition: telegrafTaskDefinition,
       desiredCount: 1,
-      serviceName: "artemis-telegraf",
+      serviceName: "artemis-telegraf", // "ArtemisAwsStack-artemis-telegraf(other chars).artemis"
       cloudMapOptions: {
         cloudMapNamespace: cluster.addDefaultCloudMapNamespace({
           name: "artemis",
         }),
         dnsRecordType: servicediscovery.DnsRecordType.A,
         dnsTtl: cdk.Duration.seconds(60),
+        name: "artemis-telegraf",
       },
+      assignPublicIp: true,
       securityGroups: [telegrafSG],
     });
 
