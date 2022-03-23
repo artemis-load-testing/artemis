@@ -10,7 +10,7 @@ const fetchObject = async (fileName) => {
   try {
     const response = await s3
       .getObject({
-        Bucket: process.env.BUCKET_NAME, // change to env variable
+        Bucket: process.env.BUCKET_NAME,
         Key: fileName,
       })
       .promise();
