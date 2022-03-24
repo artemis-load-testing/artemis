@@ -62,6 +62,20 @@ exports.handler = async (event) => {
   };
 
   try {
+    /*
+      let instanceTaskPromises = []
+      for (let i = 1; i <= taskBatchLoops - 1; i++) {
+        console.log("inside for loop:", i);
+        instanceTaskPromises.push(ecs.runTask(taskParams).promise())
+      }
+
+      taskParams.count = NTasksLeftToRun;
+      console.log("taskParams.count:", taskParams.count);
+      instanceTaskPromises.push(ecs.runTask(taskParams).promise());
+
+      await Promise.allSettled(instanceTaskPromises)
+    */
+
     const taskBatchLoops = Math.ceil(count / AWSTaskCountLimit);
     const NTasksLeftToRun = count % AWSTaskCountLimit;
 

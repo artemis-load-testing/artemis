@@ -22,6 +22,7 @@ import {
 } from "aws-cdk-lib/aws-stepfunctions";
 import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
 import { Repository } from "aws-cdk-lib/aws-ecr";
+import { CfnDatabase } from "aws-cdk-lib/aws-timestream";
 
 export class AwsStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -120,6 +121,18 @@ export class AwsStack extends Stack {
       ManagedPolicy.fromAwsManagedPolicyName("AmazonS3FullAccess")
     );
 
+    const GrafanaReadsAWSTimestream = new Role(
+      this,
+      "AllowTimestreamArtemisDBToGrafana",
+      {
+        assumedBy: new ServicePrincipal("ecs-tasks.amazonaws.com"),
+      }
+    );
+
+    GrafanaReadsAWSTimestream.addManagedPolicy(
+      ManagedPolicy.fromAwsManagedPolicyName("AmazonTimestreamReadOnlyAccess")
+    );
+
     const telegrafToTimestreamRole = new Role(
       this,
       "AllowTelegrafToTimestreamArtemisDB",
@@ -186,7 +199,7 @@ export class AwsStack extends Stack {
       {
         memoryLimitMiB: 512, // 8192
         cpu: 256, // 4096
-        taskRole: Role.fromRoleName(this, "fargateTaskRole", "artemis-s3"),
+        taskRole: artemisS3Role,
         // executionRole: Role.fromRoleName(
         //   this,
         //   'executionRole',
@@ -196,33 +209,35 @@ export class AwsStack extends Stack {
     );
 
     fargateTaskDefinition.addContainer("artemis-container", {
-      image: ecs.ContainerImage.fromEcrRepository(
-        // CHANGE TO PUBLIC
-        Repository.fromRepositoryName(
-          this,
-          "artemis-testing",
-          "artemis-testing"
-        )
+      image: ecs.ContainerImage.fromRegistry(
+        "public.ecr.aws/g7x4r6a9/artemis/artemis-testing:latest"
       ),
       logging: ecs.LogDriver.awsLogs({
         streamPrefix: "artemis-container-on-fargate",
       }),
-
-      // image: ecs.ContainerImage.fromEcrRepository(
-      //   Repository.fromRepositoryName(
-      //     this,
-      //     "artemis-testing",
-      //     "artemis-testing"
-      //   )
-      // ),
-      // environment: {
-      //   name: bucket.bucketName,
-      //   value: bucket.bucketName,
-      // },
     });
 
-    // public.ecr.aws/g7x4r6a9/artemis/artemis-telegraf:latest
+    // Grafana
+    const grafanaTaskDefinition = new ecs.FargateTaskDefinition(
+      this,
+      "grafanaTaskDef",
+      {
+        memoryLimitMiB: 2048,
+        cpu: 1024,
+        taskRole: GrafanaReadsAWSTimestream,
+      }
+    );
 
+    grafanaTaskDefinition.addContainer("grafana-container", {
+      image: ecs.ContainerImage.fromRegistry(
+        "public.ecr.aws/g7x4r6a9/artemis/artemis-grafana:latest"
+      ),
+      logging: ecs.LogDriver.awsLogs({
+        streamPrefix: "artemis-grafana-container-on-fargate",
+      }),
+    });
+
+    // Telegraf
     const telegrafTaskDefinition = new ecs.FargateTaskDefinition(
       this,
       "telegrafTaskDef",
@@ -243,17 +258,14 @@ export class AwsStack extends Stack {
       image: ecs.ContainerImage.fromRegistry(
         "public.ecr.aws/g7x4r6a9/artemis/artemis-telegraf:latest"
       ),
-      // image: ecs.ContainerImage.fromEcrRepository(
-      //   // CHANGE TO PUBLIC
-      //   Repository.fromRepositoryName(
-      //     this,
-      //     "artemis-telegraf-testing",
-      //     "artemis-telegraf-testing"
-      //   )
-      // ),
       logging: ecs.LogDriver.awsLogs({
         streamPrefix: "artemis-telegraf-container-on-fargate",
       }),
+    });
+
+    // TimestreamDB
+    const artemisTimestreamDB = new CfnDatabase(this, "artemis-db", {
+      databaseName: "artemis-db",
     });
 
     // SECURITY GROUPS
@@ -273,6 +285,24 @@ export class AwsStack extends Stack {
       ec2.Peer.anyIpv4(),
       ec2.Port.tcp(8186),
       "allow 8186 access from anywhere"
+    );
+
+    const grafanaSG = new ec2.SecurityGroup(this, "grafanaSG", {
+      vpc,
+      allowAllOutbound: true,
+      description: "security group for grafana",
+    });
+
+    grafanaSG.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(80),
+      "allow HTTP access from anywhere"
+    );
+
+    grafanaSG.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(3000),
+      "allow 3000 access from anywhere"
     );
 
     // SERVICES
