@@ -137,4 +137,4 @@ const runTaskLambda = async (payload) => {
   await lambda.invoke(event).promise();
 };
 
-module.exports = { uploadTestScript, runGrafanaTask, runTaskLambda };
+module.exports = { uploadTestScript, runTaskLambda };
