@@ -96,38 +96,6 @@ const uploadTestScript = async (fileName) => {
   }
 };
 
-const runGrafanaTask = async () => {
-  const cluster = await getECSCluster("artemisvpccluster");
-  // console.log("cluster type:", typeof cluster);
-  // const clusterDescription = await ecs
-  //   .describeClusters({
-  //     clusters: [cluster],
-  //   })
-  //   .promise();
-  // console.log("cluster description:", clusterDescription);
-  // const vpcId = clusterDescription["clusters"]; // cluster.vpc
-  const vpcId = "vpc-01b855f9f1242e4a2";
-  const taskDefinition = await getGrafanaTaskDefinition("grafanaTaskDef");
-  const subnets = await retrieveSubnets(vpcId);
-
-  // console.log(vpcId);
-
-  const taskParams = {
-    cluster,
-    taskDefinition,
-    launchType: "FARGATE",
-    count: 1,
-    networkConfiguration: {
-      awsvpcConfiguration: {
-        subnets,
-        assignPublicIp: "ENABLED",
-        securityGroups: ["sg-098a4efe777ae3f5d"],
-      },
-    },
-  };
-  await ecs.runTask(taskParams).promise();
-};
-
 const runTaskLambda = async (payload) => {
   /*
     Find the lambda with the runTask name

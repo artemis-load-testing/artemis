@@ -55,6 +55,7 @@ exports.handler = async (event) => {
           environment: [
             { name: "ORIGIN_TIMESTAMP", value: String(event.originTimestamp) },
             { name: "BUCKET_NAME", value: process.env.BUCKET_NAME },
+            { name: "TASK_COUNT", value: count },
           ],
         },
       ],

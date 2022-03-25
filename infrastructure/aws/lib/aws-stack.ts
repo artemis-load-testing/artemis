@@ -84,7 +84,7 @@ export class AwsStack extends Stack {
     //   }
     // );
 
-    const runTaskRole = new Role(this, "runTaskRole", {
+    const runLambdaRole = new Role(this, "runLambdaRole", {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
       inlinePolicies: {
         TaskStatusPolicy: new PolicyDocument({
@@ -109,7 +109,7 @@ export class AwsStack extends Stack {
       },
     });
 
-    runTaskRole.addManagedPolicy(
+    runLambdaRole.addManagedPolicy(
       ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess")
     );
 
@@ -326,7 +326,7 @@ export class AwsStack extends Stack {
     // LAMBDAS
     const runTaskLambda = new lambda.Function(this, "run-task", {
       handler: "index.handler",
-      role: runTaskRole,
+      role: runLambdaRole,
       code: lambda.Code.fromAsset(
         path.join(__dirname, "../resources/run-task")
       ),
@@ -339,6 +339,23 @@ export class AwsStack extends Stack {
         TASK_IMAGE: "artemis-container",
         BUCKET_NAME: bucket.bucketName,
       },
+    });
+
+    const runGrafanaLambda = new lambda.Function(this, "run-grafana", {
+      handler: "index.handler",
+      role: runLambdaRole,
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, "../resources/run-grafana")
+      ),
+      runtime: lambda.Runtime.NODEJS_14_X,
+      environment: {
+        TASK_CLUSTER: cluster.clusterName,
+        TASK_DEFINITION: grafanaTaskDefinition.taskDefinitionArn,
+        VPC_ID: vpc.vpcId,
+        GRAFANA_IMAGE: "artemis-grafana",
+        SECURITY_GROUP: grafanaSG.securityGroupId
+      },
+      timeout: cdk.Duration.seconds(180000)
     });
 
     // const taskStatusChecker = new lambda.Function(this, "task-status-checker", {
