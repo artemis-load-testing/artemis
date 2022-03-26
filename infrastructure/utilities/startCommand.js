@@ -1,5 +1,5 @@
 const AWS = require("aws-sdk");
-AWS.config.update({ region: "us-east-1" }); // pull region from credentials
+AWS.config.update({ region: "us-west-2" }); // pull region from credentials
 const s3 = new AWS.S3();
 const ecs = new AWS.ECS();
 const ec2 = new AWS.EC2();
@@ -7,22 +7,6 @@ const lambda = new AWS.Lambda();
 const fs = require("fs");
 const util = require("util");
 const stackName = "ArtemisAwsStack";
-
-const retrieveSubnets = async (vpcId) => {
-  // const ec2Client = new EC2Client();
-  const params = {
-    Filters: [
-      {
-        Name: "vpc-id",
-        Values: [vpcId],
-      },
-    ],
-  };
-
-  const subnets = await ec2.describeSubnets(params).promise();
-  const subnetIds = subnets.Subnets.map((subnet) => subnet.SubnetId);
-  return [subnetIds[0]];
-};
 
 const getArtemisBucket = async (desiredBucketName) => {
   const buckets = await s3.listBuckets({}).promise();
@@ -33,29 +17,6 @@ const getArtemisBucket = async (desiredBucketName) => {
     );
   });
   return artemisBucket;
-};
-
-const getECSCluster = async (desiredClusterName) => {
-  const clusters = await ecs.listClusters({}).promise();
-  // console.log(clusters);
-  const artemisCluster = clusters.clusterArns.find((clusterArn) => {
-    return clusterArn
-      .toLowerCase()
-      .includes(`${stackName}-${desiredClusterName}`.toLowerCase());
-  });
-  return artemisCluster;
-};
-
-const getGrafanaTaskDefinition = async (desiredGrafanaTaskName) => {
-  const taskDefinitions = await ecs.listTaskDefinitions({}).promise();
-  const grafanaTaskDefinition = taskDefinitions.taskDefinitionArns.find(
-    (taskDef) => {
-      return taskDef
-        .toLowerCase()
-        .includes(`${stackName}${desiredGrafanaTaskName}`.toLowerCase());
-    }
-  );
-  return grafanaTaskDefinition;
 };
 
 const uploadToBucket = async (bucketParams) => {

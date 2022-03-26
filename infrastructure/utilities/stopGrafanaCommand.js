@@ -1,13 +1,13 @@
 const AWS = require("aws-sdk");
-AWS.config.update({ region: "us-west-2" }); // pull region from credentials
+AWS.config.update({ region: "us-west-2" });
 const lambda = new AWS.Lambda();
 const stackName = "ArtemisAwsStack";
 
-const runGrafanaTask = async () => {
+const stopGrafanaTask = async () => {
   const lambdas = await lambda.listFunctions({}).promise();
-  const desiredLambdaName = "rungrafana";
+  const desiredLambdaName = "stopgrafana";
 
-  const runTaskLambda = lambdas.Functions.find((lambda) => {
+  const stopTaskLambda = lambdas.Functions.find((lambda) => {
     const lambdaName = lambda.FunctionName.toLowerCase();
     return lambdaName.includes(
       `${stackName}-${desiredLambdaName}`.toLowerCase()
@@ -15,11 +15,11 @@ const runGrafanaTask = async () => {
   });
 
   const event = {
-    FunctionName: runTaskLambda.FunctionName,
+    FunctionName: stopTaskLambda.FunctionName,
     InvocationType: "RequestResponse",
   };
 
   await lambda.invoke(event).promise();
 };
 
-module.exports = { runGrafanaTask };
+module.exports = { stopGrafanaTask };
