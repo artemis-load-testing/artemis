@@ -1,31 +1,14 @@
-const AWS = require('aws-sdk');
-const execSync = require('child_process').execSync;
-const userRegion = execSync('aws configure get region').toString().trim();
+const AWS = require("aws-sdk");
+const execSync = require("child_process").execSync;
+const userRegion = execSync("aws configure get region").toString().trim();
 AWS.config.update({ region: userRegion });
-
 const s3 = new AWS.S3();
 const ecs = new AWS.ECS();
 const ec2 = new AWS.EC2();
 const lambda = new AWS.Lambda();
-const fs = require('fs');
-const util = require('util');
-const stackName = 'ArtemisAwsStack';
-
-const retrieveSubnets = async (vpcId) => {
-  // const ec2Client = new EC2Client();
-  const params = {
-    Filters: [
-      {
-        Name: 'vpc-id',
-        Values: [vpcId],
-      },
-    ],
-  };
-
-  const subnets = await ec2.describeSubnets(params).promise();
-  const subnetIds = subnets.Subnets.map((subnet) => subnet.SubnetId);
-  return [subnetIds[0]];
-};
+const fs = require("fs");
+const util = require("util");
+const stackName = "ArtemisAwsStack";
 
 const getArtemisBucket = async (desiredBucketName) => {
   const buckets = await s3.listBuckets({}).promise();
@@ -36,29 +19,6 @@ const getArtemisBucket = async (desiredBucketName) => {
     );
   });
   return artemisBucket;
-};
-
-const getECSCluster = async (desiredClusterName) => {
-  const clusters = await ecs.listClusters({}).promise();
-  // console.log(clusters);
-  const artemisCluster = clusters.clusterArns.find((clusterArn) => {
-    return clusterArn
-      .toLowerCase()
-      .includes(`${stackName}-${desiredClusterName}`.toLowerCase());
-  });
-  return artemisCluster;
-};
-
-const getGrafanaTaskDefinition = async (desiredGrafanaTaskName) => {
-  const taskDefinitions = await ecs.listTaskDefinitions({}).promise();
-  const grafanaTaskDefinition = taskDefinitions.taskDefinitionArns.find(
-    (taskDef) => {
-      return taskDef
-        .toLowerCase()
-        .includes(`${stackName}${desiredGrafanaTaskName}`.toLowerCase());
-    }
-  );
-  return grafanaTaskDefinition;
 };
 
 const uploadToBucket = async (bucketParams) => {
@@ -73,7 +33,7 @@ const uploadToBucket = async (bucketParams) => {
 
 const run = async (testContent, key) => {
   const params = {
-    Bucket: 'artemis7bucket',
+    Bucket: "artemis7bucket",
     Key: key,
     Body: testContent,
   };
@@ -92,8 +52,8 @@ const uploadTestScript = async (fileName) => {
       If the user selects a directory, then repeat recursively until a file is chosen.
       Once a file is chosen, upload the selected file.
     */
-    let testContent = fs.readFileSync(fileName, 'utf8');
-    run(testContent, 'test_script.js');
+    let testContent = fs.readFileSync(fileName, "utf8");
+    run(testContent, "test_script.js");
   } catch (error) {
     console.error(error);
   }
@@ -110,7 +70,7 @@ const runTaskLambda = async (payload) => {
   const threeMinutes = 60 * 3 * 1000;
   const originTimestamp = Date.now() + threeMinutes;
   const lambdas = await lambda.listFunctions({}).promise();
-  const desiredLambdaName = 'runtask';
+  const desiredLambdaName = "runtask";
 
   const runTaskLambda = lambdas.Functions.find((lambda) => {
     const lambdaName = lambda.FunctionName.toLowerCase();
@@ -132,7 +92,7 @@ const runTaskLambda = async (payload) => {
 
   const event = {
     FunctionName: runTaskLambda.FunctionName,
-    InvocationType: 'Event',
+    InvocationType: "Event",
     Payload: JSON.stringify(taskConfig),
     // Payload: { count: taskCount },
   };

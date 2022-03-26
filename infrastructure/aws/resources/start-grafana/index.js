@@ -1,21 +1,7 @@
 const AWS = require("aws-sdk");
 const ec2 = new AWS.EC2();
 const ecs = new AWS.ECS();
-
-const retrieveSubnets = async (vpcId) => {
-  const params = {
-    Filters: [
-      {
-        Name: "vpc-id",
-        Values: [vpcId],
-      },
-    ],
-  };
-
-  const subnets = await ec2.describeSubnets(params).promise();
-  const subnetIds = subnets.Subnets.map((subnet) => subnet.SubnetId);
-  return [subnetIds[0]];
-};
+const s3 = new AWS.S3();
 
 const wait = async () => {
   return new Promise((resolve) => {
@@ -24,10 +10,9 @@ const wait = async () => {
 };
 
 exports.handler = async (event) => {
-  const VPC_ID = process.env.VPC_ID;
   const cluster = process.env.TASK_CLUSTER;
   const taskDefinition = process.env.TASK_DEFINITION;
-  const subnets = await retrieveSubnets(VPC_ID);
+  const subnets = [process.env.SUBNETS];
   const securityGroup = process.env.SECURITY_GROUP;
 
   const taskParams = {
@@ -57,7 +42,19 @@ exports.handler = async (event) => {
     const ipAddress =
       networkInterfaces.NetworkInterfaces[0].Association.PublicIp;
     console.log("This is the public IP:", ipAddress);
-    return ipAddress;
+
+    const bucket = process.env.BUCKET_NAME;
+    const fileName = "grafanapublicIP.txt";
+
+    const bucketParams = {
+      Bucket: bucket,
+      Key: fileName,
+      Body: ipAddress,
+    };
+
+    await s3.upload(bucketParams).promise();
+
+    console.log(`Upload of ${fileName} complete`);
   } catch (error) {
     console.log(error);
   }

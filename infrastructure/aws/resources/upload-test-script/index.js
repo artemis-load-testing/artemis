@@ -15,5 +15,3 @@ exports.handler = async (event, context) => {
 
   console.log("Put complete");
 };
-
-const readFile = (fileName) => promisify(_readFile)(fileName, "utf8");
