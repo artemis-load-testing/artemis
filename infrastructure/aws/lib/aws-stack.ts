@@ -175,9 +175,10 @@ export class AwsStack extends Stack {
     // VPC
     const vpc = new ec2.Vpc(this, "vpc", {
       maxAzs: 2,
+      cidr: "10.0.0.0/24",
       subnetConfiguration: [
         {
-          cidrMask: 24,
+          // cidrMask: 24,
           name: "ingress",
           subnetType: ec2.SubnetType.PUBLIC,
         },
