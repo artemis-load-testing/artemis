@@ -406,7 +406,7 @@
           },
           "hide": false,
           "measure": "value_sum",
-          "rawQuery": "SELECT time, (avg(measure_value::double) * 10) as vus\nFROM \"artemis-db\".\"vus\"\nWHERE time BETWEEN ago(1d) AND now() \nAND measure_name = 'value_mean'\nGROUP BY time\nORDER BY time ASC",
+          "rawQuery": "SELECT time, (avg(measure_value::double) * min(cast(task_count AS bigint))) as vus\nFROM \"artemis-db\".\"vus\"\nWHERE time BETWEEN ago(1d) AND now() \nAND measure_name = 'value_mean'\nGROUP BY time\nORDER BY time ASC",
           "refId": "A",
           "table": "\"http_reqs\""
         }
