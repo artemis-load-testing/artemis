@@ -1,5 +1,7 @@
 const AWS = require("aws-sdk");
-AWS.config.update({ region: "us-west-2" }); // pull region from credentials
+const execSync = require("child_process").execSync;
+const userRegion = execSync("aws configure get region").toString().trim();
+AWS.config.update({ region: userRegion });
 const s3 = new AWS.S3();
 const ecs = new AWS.ECS();
 const ec2 = new AWS.EC2();

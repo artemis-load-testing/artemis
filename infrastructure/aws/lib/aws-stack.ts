@@ -113,6 +113,10 @@ export class AwsStack extends Stack {
       ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess")
     );
 
+    runLambdaRole.addManagedPolicy(
+      ManagedPolicy.fromAwsManagedPolicyName("AmazonS3FullAccess")
+    );
+
     const artemisS3Role = new Role(this, "artemis-s3", {
       assumedBy: new ServicePrincipal("ecs-tasks.amazonaws.com"),
     });
@@ -341,11 +345,11 @@ export class AwsStack extends Stack {
       },
     });
 
-    const runGrafanaLambda = new lambda.Function(this, "run-grafana", {
+    const startGrafanaLambda = new lambda.Function(this, "start-grafana", {
       handler: "index.handler",
       role: runLambdaRole,
       code: lambda.Code.fromAsset(
-        path.join(__dirname, "../resources/run-grafana")
+        path.join(__dirname, "../resources/start-grafana")
       ),
       runtime: lambda.Runtime.NODEJS_14_X,
       environment: {
@@ -355,6 +359,7 @@ export class AwsStack extends Stack {
         GRAFANA_IMAGE: "artemis-grafana",
         SECURITY_GROUP: grafanaSG.securityGroupId,
         SUBNETS: vpc.publicSubnets[0].subnetId,
+        BUCKET_NAME: bucket.bucketName,
       },
       timeout: cdk.Duration.seconds(300),
     });

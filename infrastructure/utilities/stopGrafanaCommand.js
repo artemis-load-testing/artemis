@@ -1,5 +1,7 @@
 const AWS = require("aws-sdk");
-AWS.config.update({ region: "us-west-2" });
+const execSync = require("child_process").execSync;
+const userRegion = execSync("aws configure get region").toString().trim();
+AWS.config.update({ region: userRegion });
 const lambda = new AWS.Lambda();
 const stackName = "ArtemisAwsStack";
 

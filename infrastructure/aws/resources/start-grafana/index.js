@@ -1,6 +1,7 @@
 const AWS = require("aws-sdk");
 const ec2 = new AWS.EC2();
 const ecs = new AWS.ECS();
+const s3 = new AWS.S3();
 
 const wait = async () => {
   return new Promise((resolve) => {
@@ -41,7 +42,19 @@ exports.handler = async (event) => {
     const ipAddress =
       networkInterfaces.NetworkInterfaces[0].Association.PublicIp;
     console.log("This is the public IP:", ipAddress);
-    return ipAddress;
+
+    const bucket = process.env.BUCKET_NAME;
+    const fileName = "grafanapublicIP.txt";
+
+    const bucketParams = {
+      Bucket: bucket,
+      Key: fileName,
+      Body: ipAddress,
+    };
+
+    await s3.upload(bucketParams).promise();
+
+    console.log(`Upload of ${fileName} complete`);
   } catch (error) {
     console.log(error);
   }

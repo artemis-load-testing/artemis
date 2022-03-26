@@ -1,7 +1,7 @@
 import {
-  // uploadTestScript,
   runGrafanaTask,
-} from "../utilities/runGrafanaCommand.js";
+  getGrafanaIpAddressFile,
+} from "../utilities/startGrafanaCommand.js";
 
 /*
   TO IMPLEMENT
@@ -11,7 +11,8 @@ import {
 
 (async () => {
   await runGrafanaTask();
-  setTimeout(() => {
+  setTimeout(async () => {
     console.log("Grafana Started");
-  }, 5000);
+    await getGrafanaIpAddressFile();
+  }, 8000);
 })();
