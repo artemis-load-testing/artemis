@@ -314,7 +314,7 @@ export class AwsStack extends Stack {
     const telegrafService = new ecs.FargateService(this, "artemis-telegraf", {
       cluster,
       taskDefinition: telegrafTaskDefinition,
-      desiredCount: 1,
+      desiredCount: 0,
       serviceName: "artemis-telegraf", // "ArtemisAwsStack-artemis-telegraf(other chars).artemis"
       cloudMapOptions: {
         cloudMapNamespace: cluster.addDefaultCloudMapNamespace({
@@ -343,6 +343,7 @@ export class AwsStack extends Stack {
         // TASK_IMAGE: fargateTaskDefinition.defaultContainer.containerName,
         TASK_IMAGE: "artemis-container",
         BUCKET_NAME: bucket.bucketName,
+        TELEGRAF_SERVICE: telegrafService.serviceName,
       },
     });
 

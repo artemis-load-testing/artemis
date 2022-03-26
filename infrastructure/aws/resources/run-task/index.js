@@ -49,6 +49,12 @@ exports.handler = async (event) => {
   };
 
   try {
+    await ecs
+      .updateService({
+        service: process.env.TELEGRAF_SERVICE,
+        desiredCount: 1,
+      })
+      .promise();
     const taskBatchLoops = Math.ceil(count / AWSTaskCountLimit);
     const NTasksLeftToRun = count % AWSTaskCountLimit;
 
