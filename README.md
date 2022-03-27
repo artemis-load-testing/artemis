@@ -1,11 +1,11 @@
-# artemis
+# Artemis API Load Testing
 
-### current status and instructions
+### current details
 
-- `package.json` files consolidated to root of `infrastructure` directory, more organization coming...for now:
-  - run `npm install` from `/infrastructure`
+- `package.json` files consolidated to root of `artemis` directory
+  - run `npm install` from `artemis` directory
 - implemented beginnings of CLI
-  - from infrastructure folder run `npm i -g .` to install our app globally, this makes the following commands available globally:
+  - from `artemis` folder run `npm i -g .` to install our app globally, this makes the following commands available globally:
     - `artemis run-test` with `-tc` (task count) and `-p` (path to test script) required options, for example:
       - `artemis run-test -p ~/Desktop/script.js -tc 5`
       - note: options can be in any order, `-tc` before `-p` is fine also
