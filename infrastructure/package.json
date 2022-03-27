@@ -1,0 +1,42 @@
+{
+  "name": "artemis-load-testing",
+  "version": "1.0.0",
+  "bin": {
+    "aws": "bin/aws.js",
+    "artemis": "index.js"
+  },
+  "scripts": {
+    "artemis-deploy": "cd aws && cdk synth && cdk bootstrap && cdk deploy",
+    "artemis-start": "cd commands && node start.js",
+    "artemis-grafana-start": "cd commands && node grafana.js",
+    "artemis-grafana-stop": "cd commands && node grafanaStop.js",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.10",
+    "@types/node": "10.17.27",
+    "aws-cdk": "2.15.0",
+    "jest": "^26.4.2",
+    "ts-jest": "^26.2.0",
+    "ts-node": "^9.0.0",
+    "typescript": "~3.9.7"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ec2": "^3.54.0",
+    "@aws-sdk/client-ecs": "^3.54.0",
+    "@aws-sdk/client-lambda": "^3.54.0",
+    "@aws-sdk/client-s3": "^3.32.0",
+    "@aws-sdk/client-sfn": "^3.54.0",
+    "aws-cdk-lib": "2.15.0",
+    "aws-sdk": "^2.1098.0",
+    "commander": "^9.1.0",
+    "constructs": "^10.0.0",
+    "node-fetch": "^3.2.3",
+    "source-map-support": "^0.5.16"
+  },
+  "author": "artemis-load-testing",
+  "license": "ISC"
+}
