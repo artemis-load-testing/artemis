@@ -1,7 +1,7 @@
-import {
+const {
   runGrafanaTask,
   getGrafanaIpAddressFile,
-} from "../utilities/startGrafanaCommand.js";
+} = require('../utilities/startGrafanaCommand.js');
 
 /*
   TO IMPLEMENT
@@ -9,10 +9,17 @@ import {
   don't let the user start another
 */
 
-(async () => {
-  await runGrafanaTask();
-  setTimeout(async () => {
-    console.log("Grafana Started");
-    await getGrafanaIpAddressFile();
-  }, 8000);
-})();
+function startGrafana() {
+  (async () => {
+    console.log(
+      'Container is spinning up... we will have URL for you shortly...'
+    );
+    await runGrafanaTask();
+    setTimeout(async () => {
+      console.log('Grafana Started');
+      await getGrafanaIpAddressFile();
+    }, 15000);
+  })();
+}
+
+module.exports = startGrafana;
