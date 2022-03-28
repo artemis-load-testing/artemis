@@ -269,9 +269,14 @@ export class AwsStack extends Stack {
     });
 
     // TimestreamDB
-    const artemisTimestreamDB = new CfnDatabase(this, "artemis-db", {
-      databaseName: "artemis-db",
-    });
+    let firstDeploy = true;
+    if (firstDeploy) {
+      const artemisTimestreamDB = new CfnDatabase(this, "artemis-db", {
+        databaseName: "artemis-db",
+      });
+
+      artemisTimestreamDB.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN);
+    }
 
     // SECURITY GROUPS
     const telegrafSG = new ec2.SecurityGroup(this, "telegrafSG", {

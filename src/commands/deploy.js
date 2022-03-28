@@ -1,7 +1,10 @@
-const execSync = require('child_process').execSync;
+const { startDeployment } = require("../utilities/deployCommand.js");
+
 
 function deploy() {
-  console.log('CDK deployment needs implemented here.');
+  (async () => {
+    await startDeployment();
+  })();
 }
 
 module.exports = deploy;
