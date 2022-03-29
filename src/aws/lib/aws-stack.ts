@@ -1,5 +1,6 @@
 import { Aws, Stack, StackProps } from 'aws-cdk-lib';
 import * as cdk from 'aws-cdk-lib';
+
 // import { aws_s3 as s3 } from "aws-cdk-lib";
 // import { aws_ec2 as ec2 } from "aws-cdk-lib";
 // import { aws_ecs as ecs } from "aws-cdk-lib";
@@ -269,9 +270,21 @@ export class AwsStack extends Stack {
     });
 
     // TimestreamDB
-    const artemisTimestreamDB = new CfnDatabase(this, 'artemis-db', {
-      databaseName: 'artemis-db',
-    });
+
+    const fs = require("fs");
+    let firstDeployStatus = JSON.parse(
+      fs.readFileSync("config.json", "utf8")
+    ).firstDeploy;
+
+    if (firstDeployStatus === "true") {
+      console.log("inside true");
+      const artemisTimestreamDB = new CfnDatabase(this, "artemis-db", {
+        databaseName: "artemis-db",
+      });
+
+      artemisTimestreamDB.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN);
+    }
+
 
     // SECURITY GROUPS
     const telegrafSG = new ec2.SecurityGroup(this, 'telegrafSG', {

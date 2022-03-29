@@ -56,11 +56,14 @@ exports.handler = async (event) => {
         desiredCount: 1,
       })
       .promise();
-    const taskBatchLoops = Math.ceil(count / AWSTaskCountLimit);
-    const NTasksLeftToRun = count % AWSTaskCountLimit;
+    
+    // count = 19
+    const taskBatchLoops = Math.ceil(count / AWSTaskCountLimit); // 2
+    const NTasksLeftToRun = count % AWSTaskCountLimit;           // 9
 
     taskParams.count = AWSTaskCountLimit;
     let instanceTaskPromises = [];
+
     for (let i = 1; i <= taskBatchLoops - 1; i++) {
       instanceTaskPromises.push(ecs.runTask(taskParams).promise());
     }
