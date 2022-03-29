@@ -1,9 +1,10 @@
-import { Aws, Fn, Stack, StackProps } from "aws-cdk-lib";
-import * as cdk from "aws-cdk-lib";
+import { Aws, Stack, StackProps } from 'aws-cdk-lib';
+import * as cdk from 'aws-cdk-lib';
+
 // import { aws_s3 as s3 } from "aws-cdk-lib";
 // import { aws_ec2 as ec2 } from "aws-cdk-lib";
 // import { aws_ecs as ecs } from "aws-cdk-lib";
-import * as path from "path";
+import * as path from 'path';
 import {
   Effect,
   PolicyDocument,
@@ -11,18 +12,18 @@ import {
   Role,
   ServicePrincipal,
   ManagedPolicy,
-} from "aws-cdk-lib/aws-iam";
-import { Construct } from "constructs";
-import { Code, Runtime } from "aws-cdk-lib/aws-lambda";
+} from 'aws-cdk-lib/aws-iam';
+import { Construct } from 'constructs';
+import { Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import {
   Chain,
   Pass,
   StateMachine,
   Succeed,
-} from "aws-cdk-lib/aws-stepfunctions";
-import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
-import { Repository } from "aws-cdk-lib/aws-ecr";
-import { CfnDatabase } from "aws-cdk-lib/aws-timestream";
+} from 'aws-cdk-lib/aws-stepfunctions';
+import { LambdaInvoke } from 'aws-cdk-lib/aws-stepfunctions-tasks';
+import { Repository } from 'aws-cdk-lib/aws-ecr';
+import { CfnDatabase } from 'aws-cdk-lib/aws-timestream';
 
 export class AwsStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -84,25 +85,25 @@ export class AwsStack extends Stack {
     //   }
     // );
 
-    const runLambdaRole = new Role(this, "runLambdaRole", {
-      assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+    const runLambdaRole = new Role(this, 'runLambdaRole', {
+      assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
       inlinePolicies: {
         TaskStatusPolicy: new PolicyDocument({
           statements: [
             new PolicyStatement({
               effect: Effect.ALLOW,
-              actions: ["logs:CreateLogGroup"],
-              resources: ["*"], // re-evaluate
+              actions: ['logs:CreateLogGroup'],
+              resources: ['*'], // re-evaluate
             }),
             new PolicyStatement({
               effect: Effect.ALLOW,
-              actions: ["logs:CreateLogStream"],
-              resources: ["*"], // re-evaluate
+              actions: ['logs:CreateLogStream'],
+              resources: ['*'], // re-evaluate
             }),
             new PolicyStatement({
               effect: Effect.ALLOW,
-              actions: ["logs:PutLogEvents"],
-              resources: ["*"], // re-evaluate
+              actions: ['logs:PutLogEvents'],
+              resources: ['*'], // re-evaluate
             }),
           ],
         }),
@@ -110,60 +111,60 @@ export class AwsStack extends Stack {
     });
 
     runLambdaRole.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess")
+      ManagedPolicy.fromAwsManagedPolicyName('AmazonECS_FullAccess')
     );
 
     runLambdaRole.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName("AmazonS3FullAccess")
+      ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess')
     );
 
-    const artemisS3Role = new Role(this, "artemis-s3", {
-      assumedBy: new ServicePrincipal("ecs-tasks.amazonaws.com"),
+    const artemisS3Role = new Role(this, 'artemis-s3', {
+      assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
     });
 
     artemisS3Role.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName("AmazonS3FullAccess")
+      ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess')
     );
 
     const GrafanaReadsAWSTimestream = new Role(
       this,
-      "AllowTimestreamArtemisDBToGrafana",
+      'AllowTimestreamArtemisDBToGrafana',
       {
-        assumedBy: new ServicePrincipal("ecs-tasks.amazonaws.com"),
+        assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
       }
     );
 
     GrafanaReadsAWSTimestream.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName("AmazonTimestreamReadOnlyAccess")
+      ManagedPolicy.fromAwsManagedPolicyName('AmazonTimestreamReadOnlyAccess')
     );
 
     const telegrafToTimestreamRole = new Role(
       this,
-      "AllowTelegrafToTimestreamArtemisDB",
+      'AllowTelegrafToTimestreamArtemisDB',
       {
-        assumedBy: new ServicePrincipal("ecs-tasks.amazonaws.com"),
+        assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
         inlinePolicies: {
           TaskStatusPolicy: new PolicyDocument({
             statements: [
               new PolicyStatement({
                 effect: Effect.ALLOW,
-                actions: ["timestream:DescribeDatabase"],
-                resources: ["*"], // re-evaluate
+                actions: ['timestream:DescribeDatabase'],
+                resources: ['*'], // re-evaluate
               }),
               new PolicyStatement({
                 effect: Effect.ALLOW,
-                actions: ["timestream:WriteRecords"],
-                resources: ["*"], // re-evaluate
+                actions: ['timestream:WriteRecords'],
+                resources: ['*'], // re-evaluate
               }),
               new PolicyStatement({
                 effect: Effect.ALLOW,
-                actions: ["timestream:CreateTable"],
-                resources: ["*"], // re-evaluate
+                actions: ['timestream:CreateTable'],
+                resources: ['*'], // re-evaluate
               }),
               new PolicyStatement({
                 effect: Effect.ALLOW,
-                actions: ["timestream:DescribeEndpoints"],
-                resources: ["*"], // re-evaluate
+                actions: ['timestream:DescribeEndpoints'],
+                resources: ['*'], // re-evaluate
               }),
             ],
           }),
@@ -173,26 +174,26 @@ export class AwsStack extends Stack {
 
     // CONSTRUCTS
     // VPC
-    const vpc = new ec2.Vpc(this, "vpc", {
+    const vpc = new ec2.Vpc(this, 'vpc', {
       maxAzs: 2,
-      cidr: "10.0.0.0/24",
+      cidr: '10.0.0.0/24',
       subnetConfiguration: [
         {
           // cidrMask: 24,
-          name: "ingress",
+          name: 'ingress',
           subnetType: ec2.SubnetType.PUBLIC,
         },
       ],
     });
 
     // ECS
-    const cluster = new ecs.Cluster(this, "artemis-vpc-cluster", {
+    const cluster = new ecs.Cluster(this, 'artemis-vpc-cluster', {
       vpc,
       containerInsights: true,
     });
 
     // S3 bucket
-    const bucket = new s3.Bucket(this, "artemis-7-bucket", {
+    const bucket = new s3.Bucket(this, 'artemis-7-bucket', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     });
@@ -200,10 +201,10 @@ export class AwsStack extends Stack {
     // Fargate
     const fargateTaskDefinition = new ecs.FargateTaskDefinition(
       this,
-      "taskdef",
+      'taskdef',
       {
-        memoryLimitMiB: 512, // 8192
-        cpu: 256, // 4096
+        memoryLimitMiB: 2048,
+        cpu: 1024,
         taskRole: artemisS3Role,
         // executionRole: Role.fromRoleName(
         //   this,
@@ -213,39 +214,39 @@ export class AwsStack extends Stack {
       }
     );
 
-    fargateTaskDefinition.addContainer("artemis-container", {
+    fargateTaskDefinition.addContainer('artemis-container', {
       image: ecs.ContainerImage.fromRegistry(
-        "public.ecr.aws/g7x4r6a9/artemis/artemis-testing:latest"
+        'public.ecr.aws/g7x4r6a9/artemis/artemis-testing:latest'
       ),
       logging: ecs.LogDriver.awsLogs({
-        streamPrefix: "artemis-container-on-fargate",
+        streamPrefix: 'artemis-container-on-fargate',
       }),
     });
 
     // Grafana
     const grafanaTaskDefinition = new ecs.FargateTaskDefinition(
       this,
-      "grafanaTaskDef",
+      'grafanaTaskDef',
       {
-        memoryLimitMiB: 2048,
-        cpu: 1024,
+        memoryLimitMiB: 1024,
+        cpu: 512,
         taskRole: GrafanaReadsAWSTimestream,
       }
     );
 
-    grafanaTaskDefinition.addContainer("grafana-container", {
+    grafanaTaskDefinition.addContainer('grafana-container', {
       image: ecs.ContainerImage.fromRegistry(
-        "public.ecr.aws/g7x4r6a9/artemis/artemis-grafana:latest"
+        'public.ecr.aws/g7x4r6a9/artemis/artemis-grafana:latest'
       ),
       logging: ecs.LogDriver.awsLogs({
-        streamPrefix: "artemis-grafana-container-on-fargate",
+        streamPrefix: 'artemis-grafana-container-on-fargate',
       }),
     });
 
     // Telegraf
     const telegrafTaskDefinition = new ecs.FargateTaskDefinition(
       this,
-      "telegrafTaskDef",
+      'telegrafTaskDef',
       {
         memoryLimitMiB: 8192,
         cpu: 4096,
@@ -259,16 +260,17 @@ export class AwsStack extends Stack {
     );
     // "public.ecr.aws/g7x4r6a9/artemis/artemis-telegraf:latest"
 
-    telegrafTaskDefinition.addContainer("telegraf-container", {
+    telegrafTaskDefinition.addContainer('telegraf-container', {
       image: ecs.ContainerImage.fromRegistry(
-        "public.ecr.aws/g7x4r6a9/artemis/artemis-telegraf:latest"
+        'public.ecr.aws/g7x4r6a9/artemis/artemis-telegraf:latest'
       ),
       logging: ecs.LogDriver.awsLogs({
-        streamPrefix: "artemis-telegraf-container-on-fargate",
+        streamPrefix: 'artemis-telegraf-container-on-fargate',
       }),
     });
 
     // TimestreamDB
+
     const fs = require("fs");
     let firstDeployStatus = JSON.parse(
       fs.readFileSync("config.json", "utf8")
@@ -283,67 +285,68 @@ export class AwsStack extends Stack {
       artemisTimestreamDB.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN);
     }
 
+
     // SECURITY GROUPS
-    const telegrafSG = new ec2.SecurityGroup(this, "telegrafSG", {
+    const telegrafSG = new ec2.SecurityGroup(this, 'telegrafSG', {
       vpc,
       allowAllOutbound: true,
-      description: "security group for telegraf",
+      description: 'security group for telegraf',
     });
 
     telegrafSG.addIngressRule(
       ec2.Peer.anyIpv4(),
       ec2.Port.tcp(80),
-      "allow HTTP access from anywhere"
+      'allow HTTP access from anywhere'
     );
 
     telegrafSG.addIngressRule(
       ec2.Peer.anyIpv4(),
       ec2.Port.tcp(8186),
-      "allow 8186 access from anywhere"
+      'allow 8186 access from anywhere'
     );
 
-    const grafanaSG = new ec2.SecurityGroup(this, "grafanaSG", {
+    const grafanaSG = new ec2.SecurityGroup(this, 'grafanaSG', {
       vpc,
       allowAllOutbound: true,
-      description: "security group for grafana",
+      description: 'security group for grafana',
     });
 
     grafanaSG.addIngressRule(
       ec2.Peer.anyIpv4(),
       ec2.Port.tcp(80),
-      "allow HTTP access from anywhere"
+      'allow HTTP access from anywhere'
     );
 
     grafanaSG.addIngressRule(
       ec2.Peer.anyIpv4(),
       ec2.Port.tcp(3000),
-      "allow 3000 access from anywhere"
+      'allow 3000 access from anywhere'
     );
 
     // SERVICES
-    const telegrafService = new ecs.FargateService(this, "artemis-telegraf", {
+    const telegrafService = new ecs.FargateService(this, 'artemis-telegraf', {
       cluster,
       taskDefinition: telegrafTaskDefinition,
       desiredCount: 0,
-      serviceName: "artemis-telegraf", // "ArtemisAwsStack-artemis-telegraf(other chars).artemis"
+      serviceName: 'artemis-telegraf', // "ArtemisAwsStack-artemis-telegraf(other chars).artemis"
       cloudMapOptions: {
         cloudMapNamespace: cluster.addDefaultCloudMapNamespace({
-          name: "artemis",
+          name: 'artemis',
         }),
         dnsRecordType: servicediscovery.DnsRecordType.A,
         dnsTtl: cdk.Duration.seconds(60),
-        name: "artemis-telegraf",
+        name: 'artemis-telegraf',
       },
       assignPublicIp: true,
       securityGroups: [telegrafSG],
     });
 
     // LAMBDAS
-    const runTaskLambda = new lambda.Function(this, "run-task", {
-      handler: "index.handler",
+    const runTaskLambda = new lambda.Function(this, 'run-task', {
+      handler: 'index.handler',
       role: runLambdaRole,
       code: lambda.Code.fromAsset(
-        path.join(__dirname, "../resources/run-task")
+        path.join(__dirname, '../resources/run-task')
       ),
       runtime: lambda.Runtime.NODEJS_14_X,
       environment: {
@@ -351,24 +354,24 @@ export class AwsStack extends Stack {
         TASK_DEFINITION: fargateTaskDefinition.taskDefinitionArn,
         VPC_ID: vpc.vpcId,
         // TASK_IMAGE: fargateTaskDefinition.defaultContainer.containerName,
-        TASK_IMAGE: "artemis-container",
+        TASK_IMAGE: 'artemis-container',
         BUCKET_NAME: bucket.bucketName,
         TELEGRAF_SERVICE: telegrafService.serviceName,
       },
     });
 
-    const startGrafanaLambda = new lambda.Function(this, "start-grafana", {
-      handler: "index.handler",
+    const startGrafanaLambda = new lambda.Function(this, 'start-grafana', {
+      handler: 'index.handler',
       role: runLambdaRole,
       code: lambda.Code.fromAsset(
-        path.join(__dirname, "../resources/start-grafana")
+        path.join(__dirname, '../resources/start-grafana')
       ),
       runtime: lambda.Runtime.NODEJS_14_X,
       environment: {
         TASK_CLUSTER: cluster.clusterName,
         TASK_DEFINITION: grafanaTaskDefinition.taskDefinitionArn,
         VPC_ID: vpc.vpcId,
-        GRAFANA_IMAGE: "artemis-grafana",
+        GRAFANA_IMAGE: 'artemis-grafana',
         SECURITY_GROUP: grafanaSG.securityGroupId,
         SUBNETS: vpc.publicSubnets[0].subnetId,
         BUCKET_NAME: bucket.bucketName,
@@ -376,11 +379,11 @@ export class AwsStack extends Stack {
       timeout: cdk.Duration.seconds(300),
     });
 
-    const stopGrafanaTaskLambda = new lambda.Function(this, "stop-grafana", {
-      handler: "index.handler",
+    const stopGrafanaTaskLambda = new lambda.Function(this, 'stop-grafana', {
+      handler: 'index.handler',
       role: runLambdaRole,
       code: lambda.Code.fromAsset(
-        path.join(__dirname, "../resources/stop-grafana")
+        path.join(__dirname, '../resources/stop-grafana')
       ),
       runtime: lambda.Runtime.NODEJS_14_X,
       environment: {
