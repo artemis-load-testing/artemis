@@ -1,7 +1,7 @@
 const {
   startDeployment,
   setFirstDeployToFalse,
-} = require("../utilities/deployCommand.js");
+} = require('../utilities/deployCommand.js');
 
 function deploy() {
   (async () => {
@@ -9,5 +9,5 @@ function deploy() {
     await setFirstDeployToFalse();
   })();
 }
-deploy();
-// module.exports = deploy;
+
+module.exports = deploy;

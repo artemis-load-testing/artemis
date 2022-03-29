@@ -18,12 +18,12 @@ cli
 
 cli
   .command('grafana-start')
-  .description("Start Artemis' Grafana dashboard")
+  .description('Start the Artemis Grafana dashboard')
   .action(startGrafana);
 
 cli
   .command('grafana-stop')
-  .description("Stop Artemis' Grafana dashboard")
+  .description('Stop the Artemis Grafana dashboard')
   .action(stopGrafana);
 
 cli
