@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 const execSync = require('child_process').execSync;
 const userRegion = execSync('aws configure get region').toString().trim();
+const chalk = require('chalk');
 AWS.config.update({ region: userRegion });
 const lambda = new AWS.Lambda();
 const s3 = new AWS.S3();
@@ -46,7 +47,8 @@ const getGrafanaIpAddressFile = async () => {
       console.log(err);
     } else {
       console.log(
-        `Click to see the dashboard: http://${data.Body.toString()}:${GRAFANA_PORT_NUM}`
+        chalk.cyan('Click to see the dashboard: ') +
+          chalk.green(`http://${data.Body.toString()}:${GRAFANA_PORT_NUM}`)
       );
     }
   });

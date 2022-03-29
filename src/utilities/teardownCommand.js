@@ -7,6 +7,9 @@ const chalk = require('chalk');
 AWS.config.update({ region: userRegion });
 const path = require('path');
 
+const { promisify } = require('util');
+const exec = promisify(require('child_process').exec);
+
 const cdkPath = path.join(__dirname, '../aws');
 
 const startTeardown = async () => {
@@ -20,17 +23,15 @@ const startTeardown = async () => {
     confirmTeardown = confirmTeardown.toLowerCase().trim();
 
     if (confirmTeardown === 'y') {
-      // console.log('Teardown in progress...');
-
       const spinner = ora(chalk.cyan('Teardown in progress...')).start();
+      spinner.color = 'yellow';
 
-      execSync(`cd ${cdkPath} && cdk destroy -f`, {
+      await exec(`cd ${cdkPath} && cdk destroy -f`, {
         encoding: 'utf-8',
       });
-      // console.log('Teardown completed successfully.');
       spinner.succeed(chalk.cyan('Teardown completed successfully.'));
     } else if (confirmTeardown === 'n') {
-      console.log(chalk.red('Teardown canceled.'));
+      console.log(chalk.yellow('Teardown canceled.'));
     } else {
       console.log(chalk.cyan('Please provide the correct input.'));
       // setTimeout(() => console.clear(), 500); clear the console

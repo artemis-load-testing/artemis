@@ -15,9 +15,7 @@ const chalk = require('chalk');
 function startGrafana() {
   (async () => {
     const spinner = ora(
-      chalk.cyan(
-        'Container is spinning up... we will have URL for you shortly...'
-      )
+      chalk.cyan('Container is spinning up, URL incoming...')
     ).start();
 
     spinner.color = 'yellow';
