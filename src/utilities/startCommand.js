@@ -33,7 +33,7 @@ const uploadToBucket = async (bucketParams) => {
 
 const run = async (testContent, key) => {
   const params = {
-    Bucket: "artemis7bucket",
+    Bucket: "artemisbucket",
     Key: key,
     Body: testContent,
   };
