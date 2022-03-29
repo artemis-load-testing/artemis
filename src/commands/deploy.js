@@ -1,10 +1,13 @@
-const { startDeployment } = require("../utilities/deployCommand.js");
-
+const {
+  startDeployment,
+  setFirstDeployToFalse,
+} = require("../utilities/deployCommand.js");
 
 function deploy() {
   (async () => {
     await startDeployment();
+    await setFirstDeployToFalse();
   })();
 }
-
-module.exports = deploy;
+deploy();
+// module.exports = deploy;

@@ -6,6 +6,7 @@ const cloudformation = new AWS.CloudFormation();
 const timestream = new AWS.TimestreamWrite();
 const stackName = "ArtemisAwsStack";
 const timestreamDbName = "artemis-db";
+const fs = require("fs");
 
 /*
 - Get list of stack names and look for `ArtemisAwsStack`
@@ -25,9 +26,9 @@ const artemisStackDeployed = async () => {
   return stackDeployed;
 };
 
-const checkForExistingArtemisDb = async () => {
+const getExistingArtemisDb = async () => {
   const allTimestreamDbs = await timestream.listDatabases().promise();
-  const databaseDeployed = !!allTimestreamDbs.Databases.find((db) => {
+  const databaseDeployed = allTimestreamDbs.Databases.find((db) => {
     return db.DatabaseName === timestreamDbName;
   });
   return databaseDeployed;
@@ -35,15 +36,16 @@ const checkForExistingArtemisDb = async () => {
 
 const startDeployment = async () => {
   const stackExists = await artemisStackDeployed();
-  const artemisDatabaseExists = await checkForExistingArtemisDb();
+  const artemisDatabase = await getExistingArtemisDb();
 
-  if (stackExists && artemisDatabaseExists) {
+  if (stackExists && !!artemisDatabase) {
     console.log("ArtemisAwsStack and artemis-db are already deployed");
-  } else if (artemisDatabaseExists) {
+  } else if (!!artemisDatabase) {
     console.log("artemis-db is already deployed.");
     console.log("Deploying ArtemisAwsStack only.");
+    console.log(fs.readFileSync("../aws/config.json", "utf8"));
     execSync(
-      "cd ../aws && cdk synth && cdk bootstrap && cdk deploy --require-approval never",
+      `cd ../aws && cdk synth && cdk bootstrap && cdk deploy --require-approval never`,
       {
         encoding: "utf-8",
       }
@@ -59,5 +61,17 @@ const startDeployment = async () => {
   }
 };
 
-startDeployment();
-// module.exports = { startDeployment };
+const setFirstDeployToFalse = async () => {
+  const data = '{"firstDeploy": "false"}';
+  fs.writeFile("../aws/config.json", data, (err) => {
+    if (err) console.log(err);
+    else {
+      let firstDeployStatus = JSON.parse(
+        fs.readFileSync("../aws/config.json", "utf8")
+      ).firstDeploy;
+      console.log("File written successfully with value: ", firstDeployStatus);
+    }
+  });
+};
+
+module.exports = { startDeployment, setFirstDeployToFalse };
