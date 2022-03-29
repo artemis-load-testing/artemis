@@ -1,16 +1,16 @@
-const AWS = require("aws-sdk");
-const execSync = require("child_process").execSync;
-const userRegion = execSync("aws configure get region").toString().trim();
+const AWS = require('aws-sdk');
+const execSync = require('child_process').execSync;
+const userRegion = execSync('aws configure get region').toString().trim();
 AWS.config.update({ region: userRegion });
 const lambda = new AWS.Lambda();
 const s3 = new AWS.S3();
-const stackName = "ArtemisAwsStack";
-const bucketParams = { Bucket: "artemis7bucket", Key: "grafanapublicIP.txt" };
+const stackName = 'ArtemisAwsStack';
+const bucketParams = { Bucket: 'artemisbucket', Key: 'grafanapublicIP.txt' };
 const GRAFANA_PORT_NUM = 3000;
 
 const runGrafanaTask = async () => {
   const lambdas = await lambda.listFunctions({}).promise();
-  const desiredLambdaName = "startgrafana";
+  const desiredLambdaName = 'startgrafana';
 
   const runTaskLambda = lambdas.Functions.find((lambda) => {
     const lambdaName = lambda.FunctionName.toLowerCase();
@@ -21,7 +21,7 @@ const runGrafanaTask = async () => {
 
   const event = {
     FunctionName: runTaskLambda.FunctionName,
-    InvocationType: "RequestResponse",
+    InvocationType: 'RequestResponse',
   };
 
   await lambda.invoke(event).promise();

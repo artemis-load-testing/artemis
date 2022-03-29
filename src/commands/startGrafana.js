@@ -3,6 +3,9 @@ const {
   getGrafanaIpAddressFile,
 } = require('../utilities/startGrafanaCommand.js');
 
+const ora = require('ora-classic');
+const chalk = require('chalk');
+
 /*
   TO IMPLEMENT
   error handling to check if a grafana task is already running
@@ -11,12 +14,17 @@ const {
 
 function startGrafana() {
   (async () => {
-    console.log(
-      'Container is spinning up... we will have URL for you shortly...'
-    );
+    const spinner = ora(
+      chalk.cyan(
+        'Container is spinning up... we will have URL for you shortly...'
+      )
+    ).start();
+
+    spinner.color = 'yellow';
+
     await runGrafanaTask();
     setTimeout(async () => {
-      console.log('Grafana Started');
+      spinner.succeed(chalk.cyan('Grafana Started'));
       await getGrafanaIpAddressFile();
     }, 15000);
   })();
