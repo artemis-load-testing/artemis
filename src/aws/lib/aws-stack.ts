@@ -270,14 +270,12 @@ export class AwsStack extends Stack {
     });
 
     // TimestreamDB
-
     const fs = require("fs");
     let firstDeployStatus = JSON.parse(
       fs.readFileSync("config.json", "utf8")
     ).firstDeploy;
 
     if (firstDeployStatus === "true") {
-      console.log("inside true");
       const artemisTimestreamDB = new CfnDatabase(this, "artemis-db", {
         databaseName: "artemis-db",
       });
