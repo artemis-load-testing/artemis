@@ -283,13 +283,6 @@ export class AwsStack extends Stack {
       artemisTimestreamDB.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN);
     }
 
-    
-    // const artemisTimestreamDB = new CfnDatabase(this, "artemis-db", {
-    //   databaseName: "artemis-db",
-    // });
-
-    // artemisTimestreamDB.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN);
-
     // SECURITY GROUPS
     const telegrafSG = new ec2.SecurityGroup(this, "telegrafSG", {
       vpc,
