@@ -5,6 +5,7 @@ const start = require('./commands/start.js');
 const startGrafana = require('./commands/startGrafana.js');
 const stopGrafana = require('./commands/stopGrafana.js');
 const deploy = require('./commands/deploy.js');
+const teardown = require('./commands/teardown.js');
 
 cli.description('Artemis API Load Testing CLI');
 cli.name('artemis');
@@ -30,5 +31,12 @@ cli
   .command('deploy')
   .description("Deploy Artemis infrastructure on user's AWS account.")
   .action(deploy);
+
+cli
+  .command('teardown')
+  .description(
+    "Teardown Artemis infrastructure on user's AWS account, retain database (artemis-db)."
+  )
+  .action(teardown);
 
 cli.parse(process.argv);

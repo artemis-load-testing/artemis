@@ -9,16 +9,12 @@ const timestreamDbName = 'artemis-db';
 const fs = require('fs');
 const path = require('path');
 
-/*
-- Get list of stack names and look for `ArtemisAwsStack`
-    - `cdk list` (`ls`) - Lists the stacks in the app
-- If they already have a ArtemisAWSStack
-    - Don’t redeploy
-- If no ArtemisAWSStack AND no database named `artemis-db`
-    - Deploy everything
-- If just database `artemis-db`
-    - Deploy everything but the `artemis-db` database
-*/
+const ora = require('ora-classic');
+const chalk = require('chalk');
+
+const { promisify } = require('util');
+const exec = promisify(require('child_process').exec);
+
 const artemisStackDeployed = async () => {
   const allStacks = await cloudformation.describeStacks().promise();
   const stackDeployed = !!allStacks.Stacks.find((stack) => {
@@ -42,24 +38,42 @@ const startDeployment = async () => {
   const artemisDatabase = await getExistingArtemisDb();
 
   if (stackExists && !!artemisDatabase) {
-    console.log('ArtemisAwsStack and artemis-db are already deployed');
+    console.log('ArtemisAwsStack and artemis-db are already deployed.');
   } else if (!!artemisDatabase) {
-    console.log('artemis-db is already deployed.');
-    console.log('Deploying ArtemisAwsStack only.');
-    console.log(fs.readFileSync(`${cdkPath}/config.json`, 'utf8'));
-    execSync(
+    console.log(chalk.green('Your artemis-db is already deployed.'));
+    const spinner = ora(
+      chalk.cyan('Deploying ArtemisAwsStack only...')
+    ).start();
+
+    spinner.color = 'yellow';
+    fs.readFileSync(`${cdkPath}/config.json`, 'utf8');
+
+    await exec(
       `cd ${cdkPath} && cdk synth && cdk bootstrap && cdk deploy --require-approval never`,
       {
         encoding: 'utf-8',
       }
     );
+
+    spinner.succeed(
+      chalk.cyan('Artemis infrastructure on AWS successfully deployed.')
+    );
   } else {
-    console.log('Deploying ArtemisAwsStack and artemis-db');
-    execSync(
+    const spinner = ora(
+      chalk.cyan('Deploying ArtemisAwsStack and artemis-db...')
+    ).start();
+
+    spinner.color = 'yellow';
+
+    await exec(
       `cd ${cdkPath} && cdk synth && cdk bootstrap && cdk deploy --require-approval never`,
       {
         encoding: 'utf-8',
       }
+    );
+
+    spinner.succeed(
+      chalk.cyan('Artemis infrastructure on AWS successfully deployed.')
     );
   }
 };
@@ -72,7 +86,7 @@ const setFirstDeployToFalse = async () => {
       let firstDeployStatus = JSON.parse(
         fs.readFileSync(`${cdkPath}/config.json`, 'utf8')
       ).firstDeploy;
-      console.log('File written successfully with value: ', firstDeployStatus);
+      // console.log('File written successfully with value: ', firstDeployStatus);
     }
   });
 };
