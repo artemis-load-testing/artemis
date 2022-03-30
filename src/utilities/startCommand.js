@@ -4,11 +4,12 @@ const userRegion = execSync("aws configure get region").toString().trim();
 AWS.config.update({ region: userRegion });
 const s3 = new AWS.S3();
 const ecs = new AWS.ECS();
-const ec2 = new AWS.EC2();
 const lambda = new AWS.Lambda();
 const fs = require("fs");
 const util = require("util");
 const stackName = "ArtemisAwsStack";
+const clusterName = "artemisvpccluster";
+const telegrafServiceName = "artemis-telegraf";
 
 const getArtemisBucket = async (desiredBucketName) => {
   const buckets = await s3.listBuckets({}).promise();
@@ -19,6 +20,22 @@ const getArtemisBucket = async (desiredBucketName) => {
     );
   });
   return artemisBucket;
+};
+
+const getArtemisCluster = async (desiredClusterName) => {
+  const clusters = await ecs.listClusters({}).promise();
+  const artemisCluster = clusters.clusterArns.find((clusterArn) => {
+    return clusterArn.includes(desiredClusterName);
+  });
+  return artemisCluster;
+};
+
+const getTelegrafService = async (cluster, desiredServiceName) => {
+  const services = await ecs.listServices({ cluster }).promise();
+  const telegrafService = services.serviceArns.find((serviceArn) => {
+    return serviceArn.includes(desiredServiceName);
+  });
+  return telegrafService;
 };
 
 const uploadToBucket = async (bucketParams) => {
@@ -38,20 +55,11 @@ const run = async (testContent, key) => {
     Body: testContent,
   };
 
-  // await createBucket({ Bucket: params.Bucket });
   await uploadToBucket(params);
 };
 
-// const readFile = (fileName) => util.promisify(fs.readFile)(fileName, "utf8");
-
 const uploadTestScript = async (fileName) => {
   try {
-    /*
-    Look for a file named test_script.js
-    If it doesn't exist then ask the user to choose a directory or the test file.
-      If the user selects a directory, then repeat recursively until a file is chosen.
-      Once a file is chosen, upload the selected file.
-    */
     let testContent = fs.readFileSync(fileName, "utf8");
     run(testContent, "test_script.js");
   } catch (error) {
@@ -60,13 +68,6 @@ const uploadTestScript = async (fileName) => {
 };
 
 const runTaskLambda = async (payload) => {
-  /*
-    Find the lambda with the runTask name
-    Calculate the origin timestamp (current time + 3 mins)
-    Pass the task count and origin timestamp in the payload
-    Invoke the lambda
-  */
-
   const threeMinutes = 60 * 3 * 1000;
   const originTimestamp = Date.now() + threeMinutes;
   const lambdas = await lambda.listFunctions({}).promise();
@@ -78,8 +79,6 @@ const runTaskLambda = async (payload) => {
       `${stackName}-${desiredLambdaName}`.toLowerCase()
     );
   });
-
-  // console.log(runTaskLambda);
 
   const taskCount = payload.taskCount;
   const testId = payload.testId;
@@ -94,10 +93,53 @@ const runTaskLambda = async (payload) => {
     FunctionName: runTaskLambda.FunctionName,
     InvocationType: "Event",
     Payload: JSON.stringify(taskConfig),
-    // Payload: { count: taskCount },
   };
 
   await lambda.invoke(event).promise();
 };
 
-module.exports = { uploadTestScript, runTaskLambda };
+const tasksAreRunning = async (intervalId) => {
+  const desiredClusterName = `${stackName}-${clusterName}`;
+  const desiredServiceName = telegrafServiceName;
+  const artemisCluster = await getArtemisCluster(desiredClusterName);
+  const telegrafServiceArn = await getTelegrafService(
+    artemisCluster,
+    desiredServiceName
+  );
+
+  const tasks = await ecs
+    .listTasks({ cluster: artemisCluster, desiredStatus: "RUNNING" })
+    .promise();
+
+  if (tasks.taskArns.length === 1) {
+    const runningTasks = await ecs
+      .describeTasks({
+        cluster: artemisCluster,
+        tasks: [tasks.taskArns[0]],
+      })
+      .promise();
+
+    const onlyRunningTask = runningTasks.tasks[0].taskDefinitionArn;
+
+    console.log(onlyRunningTask);
+    if (onlyRunningTask.includes("telegraf")) {
+      console.log("inside the if statement");
+      await ecs
+        .updateService({
+          cluster: artemisCluster,
+          service: telegrafServiceArn,
+          desiredCount: 0,
+        })
+        .promise();
+      clearInterval(intervalId);
+    }
+  }
+};
+
+const stopTelegrafService = () => {
+  const intervalId = setInterval(() => {
+    tasksAreRunning(intervalId);
+  }, 3 * 60 * 1000);
+};
+
+module.exports = { uploadTestScript, runTaskLambda, stopTelegrafService };

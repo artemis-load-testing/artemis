@@ -1,9 +1,15 @@
-import { Aws, Stack, StackProps } from "aws-cdk-lib";
-import * as cdk from "aws-cdk-lib";
-
-// import { aws_s3 as s3 } from "aws-cdk-lib";
-// import { aws_ec2 as ec2 } from "aws-cdk-lib";
-// import { aws_ecs as ecs } from "aws-cdk-lib";
+import {
+  aws_s3 as s3,
+  aws_ec2 as ec2,
+  aws_ecs as ecs,
+  aws_lambda as lambda,
+  aws_servicediscovery as servicediscovery,
+  aws_timestream as timestream,
+  Stack,
+  StackProps,
+  RemovalPolicy,
+  Duration,
+} from "aws-cdk-lib";
 import * as path from "path";
 import {
   Effect,
@@ -14,77 +20,12 @@ import {
   ManagedPolicy,
 } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
-import { Code, Runtime } from "aws-cdk-lib/aws-lambda";
-import {
-  Chain,
-  Pass,
-  StateMachine,
-  Succeed,
-} from "aws-cdk-lib/aws-stepfunctions";
-import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
-import { Repository } from "aws-cdk-lib/aws-ecr";
-import { CfnDatabase } from "aws-cdk-lib/aws-timestream";
 
 export class AwsStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const s3 = cdk.aws_s3;
-    const ec2 = cdk.aws_ec2;
-    const ecs = cdk.aws_ecs;
-    const lambda = cdk.aws_lambda;
-    const servicediscovery = cdk.aws_servicediscovery;
-
     // ROLES
-    // const taskStatusCheckerRole = new Role(this, "TaskStatusRole", {
-    //   assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-    //   inlinePolicies: {
-    //     TaskStatusPolicy: new PolicyDocument({
-    //       statements: [
-    //         new PolicyStatement({
-    //           effect: Effect.ALLOW,
-    //           actions: ["ecs:ListTasks"],
-    //           resources: ["*"],
-    //         }),
-    //         new PolicyStatement({
-    //           effect: Effect.ALLOW,
-    //           actions: ["ecs:DescribeTasks"],
-    //           resources: ["*"],
-    //         }),
-    //       ],
-    //     }),
-    //   },
-    // });
-
-    // const uploadTestScriptToS3Role = new Role(
-    //   this,
-    //   "uploadTestScriptToS3Role",
-    //   {
-    //     assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-    //     inlinePolicies: {
-    //       TaskStatusPolicy: new PolicyDocument({
-    //         statements: [
-    //           new PolicyStatement({
-    //             effect: Effect.ALLOW,
-    //             actions: ["s3:PutObject"],
-    //             resources: ["*"], // re-evaluate
-    //           }),
-    //           new PolicyStatement({
-    //             effect: Effect.ALLOW,
-    //             actions: ["s3:CreateBucket"],
-    //             resources: ["*"], // re-evaluate
-    //           }),
-    //           new PolicyStatement({
-    //             effect: Effect.ALLOW,
-    //             actions: ["sts:AssumeRole"],
-    //             resources: ["*"], // re-evaluate
-    //           }),
-    //         ],
-    //       }),
-    //     },
-    //   }
-    // );
-
     const runLambdaRole = new Role(this, "runLambdaRole", {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
       inlinePolicies: {
@@ -179,7 +120,6 @@ export class AwsStack extends Stack {
       cidr: "10.0.0.0/24",
       subnetConfiguration: [
         {
-          // cidrMask: 24,
           name: "ingress",
           subnetType: ec2.SubnetType.PUBLIC,
         },
@@ -194,7 +134,7 @@ export class AwsStack extends Stack {
 
     // S3 bucket
     const bucket = new s3.Bucket(this, "artemis-bucket", {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     });
 
@@ -206,11 +146,6 @@ export class AwsStack extends Stack {
         memoryLimitMiB: 2048,
         cpu: 1024,
         taskRole: artemisS3Role,
-        // executionRole: Role.fromRoleName(
-        //   this,
-        //   'executionRole',
-        //   'ecsTaskExecutionRole'
-        // ),
       }
     );
 
@@ -251,14 +186,8 @@ export class AwsStack extends Stack {
         memoryLimitMiB: 8192,
         cpu: 4096,
         taskRole: telegrafToTimestreamRole,
-        // executionRole: Role.fromRoleName(
-        //   this,
-        //   'executionRole',
-        //   'ecsTaskExecutionRole'
-        // ),
       }
     );
-    // "public.ecr.aws/g7x4r6a9/artemis/artemis-telegraf:latest"
 
     telegrafTaskDefinition.addContainer("telegraf-container", {
       image: ecs.ContainerImage.fromRegistry(
@@ -276,11 +205,15 @@ export class AwsStack extends Stack {
     ).firstDeploy;
 
     if (firstDeployStatus === "true") {
-      const artemisTimestreamDB = new CfnDatabase(this, "artemis-db", {
-        databaseName: "artemis-db",
-      });
+      const artemisTimestreamDB = new timestream.CfnDatabase(
+        this,
+        "artemis-db",
+        {
+          databaseName: "artemis-db",
+        }
+      );
 
-      artemisTimestreamDB.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN);
+      artemisTimestreamDB.applyRemovalPolicy(RemovalPolicy.RETAIN);
     }
 
     // SECURITY GROUPS
@@ -325,13 +258,13 @@ export class AwsStack extends Stack {
       cluster,
       taskDefinition: telegrafTaskDefinition,
       desiredCount: 0,
-      serviceName: "artemis-telegraf", // "ArtemisAwsStack-artemis-telegraf(other chars).artemis"
+      serviceName: "artemis-telegraf",
       cloudMapOptions: {
         cloudMapNamespace: cluster.addDefaultCloudMapNamespace({
           name: "artemis",
         }),
         dnsRecordType: servicediscovery.DnsRecordType.A,
-        dnsTtl: cdk.Duration.seconds(60),
+        dnsTtl: Duration.seconds(60),
         name: "artemis-telegraf",
       },
       assignPublicIp: true,
@@ -350,12 +283,11 @@ export class AwsStack extends Stack {
         TASK_CLUSTER: cluster.clusterName,
         TASK_DEFINITION: fargateTaskDefinition.taskDefinitionArn,
         VPC_ID: vpc.vpcId,
-        // TASK_IMAGE: fargateTaskDefinition.defaultContainer.containerName,
         TASK_IMAGE: "artemis-container",
         BUCKET_NAME: bucket.bucketName,
         TELEGRAF_SERVICE: telegrafService.serviceName,
       },
-      timeout: cdk.Duration.seconds(180),
+      timeout: Duration.seconds(180),
     });
 
     const startGrafanaLambda = new lambda.Function(this, "start-grafana", {
@@ -374,7 +306,7 @@ export class AwsStack extends Stack {
         SUBNETS: vpc.publicSubnets[0].subnetId,
         BUCKET_NAME: bucket.bucketName,
       },
-      timeout: cdk.Duration.seconds(300),
+      timeout: Duration.seconds(300),
     });
 
     const stopGrafanaTaskLambda = new lambda.Function(this, "stop-grafana", {
@@ -388,19 +320,7 @@ export class AwsStack extends Stack {
         TASK_CLUSTER: cluster.clusterName,
         TASK_DEFINITION: grafanaTaskDefinition.taskDefinitionArn,
       },
-      timeout: cdk.Duration.seconds(60),
+      timeout: Duration.seconds(60),
     });
-
-    // const taskStatusChecker = new lambda.Function(this, "task-status-checker", {
-    //   handler: "index.handler",
-    //   role: taskStatusCheckerRole,
-    //   code: lambda.Code.fromAsset(
-    //     path.join(__dirname, "../resources/task-status-checker")
-    //   ),
-    //   runtime: lambda.Runtime.NODEJS_14_X,
-    //   environment: {
-    //     TASK_CLUSTER: cluster.clusterName,
-    //   },
-    // });
   }
 }
