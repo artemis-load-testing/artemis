@@ -5,7 +5,7 @@ AWS.config.update({ region: userRegion });
 const lambda = new AWS.Lambda();
 const s3 = new AWS.S3();
 const stackName = "ArtemisAwsStack";
-const bucketParams = { Bucket: "artemis7bucket", Key: "grafanapublicIP.txt" };
+const bucketParams = { Bucket: "artemisbucket", Key: "grafanapublicIP.txt" };
 const GRAFANA_PORT_NUM = 3000;
 
 const runGrafanaTask = async () => {
