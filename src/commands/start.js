@@ -1,11 +1,10 @@
 const {
   uploadTestScript,
-  runTaskLambda,
-  stopTelegrafService,
+  runTaskLambda
 } = require("../utilities/startCommand.js");
 
-const ora = require('ora-classic');
-const chalk = require('chalk');
+const ora = require("ora-classic");
+const chalk = require("chalk");
 
 function start(options) {
   const config = { testId: "abc123", taskCount: options.taskCount };
@@ -15,17 +14,17 @@ function start(options) {
     const { testId, taskCount } = config;
 
     await uploadTestScript(testScript);
-    console.log(chalk.green('Test script successfully uploaded.'));
+    console.log(chalk.green("Test script successfully uploaded."));
     const spinner = ora(
       chalk.cyan(
-        'Spinning up test containers, this will take about three minutes...'
+        "Spinning up test containers, this will take about three minutes..."
       )
     ).start();
-    spinner.color = 'yellow';
+    spinner.color = "yellow";
     await runTaskLambda(config);
     setTimeout(() => {
       spinner.succeed(
-        chalk.cyan('Test started, you can begin visualizing results.')
+        chalk.cyan("Test started, you can begin visualizing results.")
       );
     }, 180000);
   })();
