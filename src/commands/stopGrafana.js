@@ -1,13 +1,16 @@
 const { stopGrafanaTask } = require('../utilities/stopGrafanaCommand.js');
+const ora = require('ora-classic');
+const chalk = require('chalk');
 
 function stopGrafana() {
   (async () => {
-    console.log(
-      'Container is shutting down... we will have shutdown confirmation for you shortly...'
-    );
+    const spinner = ora(chalk.cyan('Container is shutting down...')).start();
+
+    spinner.color = 'yellow';
+
     await stopGrafanaTask();
     setTimeout(() => {
-      console.log('Grafana Stopped');
+      spinner.succeed(chalk.cyan('Grafana Stopped'));
     }, 10000);
   })();
 }
