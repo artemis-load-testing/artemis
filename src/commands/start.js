@@ -1,14 +1,13 @@
 const {
   uploadTestScript,
   runTaskLambda,
-  stopTelegrafService,
-} = require("../utilities/startCommand.js");
+} = require('../utilities/startCommand.js');
 
 const ora = require('ora-classic');
 const chalk = require('chalk');
 
 function start(options) {
-  const config = { testId: "abc123", taskCount: options.taskCount };
+  const config = { testId: 'abc123', taskCount: options.taskCount };
   const testScript = options.path;
 
   (async () => {
@@ -30,5 +29,5 @@ function start(options) {
     }, 180000);
   })();
 }
-// start();
+
 module.exports = start;

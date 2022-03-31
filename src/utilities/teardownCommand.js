@@ -8,6 +8,7 @@ AWS.config.update({ region: userRegion });
 const path = require('path');
 
 const { promisify } = require('util');
+const sleep = require('../commands/sleep.js');
 const exec = promisify(require('child_process').exec);
 
 const cdkPath = path.join(__dirname, '../aws');
@@ -23,6 +24,7 @@ const startTeardown = async () => {
     confirmTeardown = confirmTeardown.toLowerCase().trim();
 
     if (confirmTeardown === 'y') {
+      await sleep();
       const spinner = ora(chalk.cyan('Teardown in progress...')).start();
       spinner.color = 'yellow';
 
