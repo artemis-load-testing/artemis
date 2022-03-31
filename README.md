@@ -1,6 +1,6 @@
 ![Artemis logo](assets/images/Artemis_logo_color.png)
 
-Artemis is an open-source, serverless framework for scalable load testing of your APIs.
+**Artemis is an open-source, serverless framework for scalable load testing of your APIs.**
 
 ### Artemis requires:
 
@@ -30,8 +30,8 @@ Commands:
   run-test [options]  Run the test script concurrently this number of times.
   grafana-start       Start the Artemis Grafana dashboard
   grafana-stop        Stop the Artemis Grafana dashboard
-  deploy              Deploy Artemis infrastructure on user\'s AWS account.
+  deploy              Deploy Artemis infrastructure on user's AWS account.
   sleep               Stop all support container tasks for minimal AWS usage charges.
-  teardown            Teardown Artemis infrastructure on user\'s AWS account, retain Artemis database.
+  teardown            Teardown Artemis infrastructure on user's AWS account, retain database.
   help [command]      display help for command
 ```
