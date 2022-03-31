@@ -1,8 +1,0 @@
-apiVersion: 1
-
-datasources:
-  - name: Amazon Timestream
-    type: 'grafana-timestream-datasource'
-    isDefault: true
-    jsonData:
-      authType: default
