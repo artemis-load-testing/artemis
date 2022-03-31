@@ -6,6 +6,7 @@ const startGrafana = require('./commands/startGrafana.js');
 const stopGrafana = require('./commands/stopGrafana.js');
 const deploy = require('./commands/deploy.js');
 const teardown = require('./commands/teardown.js');
+const sleep = require('./commands/sleep.js');
 
 cli.description('Artemis API Load Testing CLI');
 cli.name('artemis');
@@ -33,9 +34,16 @@ cli
   .action(deploy);
 
 cli
+  .command('sleep')
+  .description(
+    'Stop all support container tasks for minimal AWS usage charges.'
+  )
+  .action(sleep);
+
+cli
   .command('teardown')
   .description(
-    "Teardown Artemis infrastructure on user's AWS account, retain database (artemis-db)."
+    "Teardown Artemis infrastructure on user's AWS account, retain Artemis database."
   )
   .action(teardown);
 

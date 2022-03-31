@@ -1,11 +1,14 @@
-const AWS = require("aws-sdk");
-const execSync = require("child_process").execSync;
-const userRegion = execSync("aws configure get region").toString().trim();
+const AWS = require('aws-sdk');
+const execSync = require('child_process').execSync;
+const userRegion = execSync('aws configure get region').toString().trim();
 AWS.config.update({ region: userRegion });
 const ecs = new AWS.ECS();
-const stackName = "ArtemisAwsStack";
-const clusterName = "artemisvpccluster";
-const telegrafServiceName = "artemis-telegraf";
+const stackName = 'ArtemisAwsStack';
+const clusterName = 'artemisvpccluster';
+const telegrafServiceName = 'artemis-telegraf';
+
+const ora = require('ora-classic');
+const chalk = require('chalk');
 
 const getArtemisCluster = async (desiredClusterName) => {
   const clusters = await ecs.listClusters({}).promise();
@@ -25,7 +28,7 @@ const getTelegrafService = async (cluster, desiredServiceName) => {
 
 const getRunningTasks = async (artemisCluster) => {
   return await ecs
-    .listTasks({ cluster: artemisCluster, desiredStatus: "RUNNING" })
+    .listTasks({ cluster: artemisCluster, desiredStatus: 'RUNNING' })
     .promise();
 };
 
@@ -50,10 +53,10 @@ const onlyTelegrafAndGrafanaRunning = async (
   secondRunningTaskArn
 ) => {
   if (
-    (firstRunningTaskArn.includes("telegraf") &&
-      secondRunningTaskArn.includes("grafana")) ||
-    (firstRunningTaskArn.includes("grafana") &&
-      secondRunningTaskArn.includes("telegraf"))
+    (firstRunningTaskArn.includes('telegraf') &&
+      secondRunningTaskArn.includes('grafana')) ||
+    (firstRunningTaskArn.includes('grafana') &&
+      secondRunningTaskArn.includes('telegraf'))
   ) {
     return true;
   } else {
@@ -81,11 +84,20 @@ const stopRemainingTasksRunning = async () => {
       .promise();
 
     const onlyRunningTask = runningTasks.tasks[0].taskDefinitionArn;
-    if (onlyRunningTask.includes("telegraf")) {
+    if (onlyRunningTask.includes('telegraf')) {
+      const spinnerTelegrafOne = ora(
+        chalk.cyan('Stopping Telegraf...')
+      ).start();
+      spinnerTelegrafOne.color = 'yellow';
       await stopTelegrafService(artemisCluster, telegrafServiceArn);
-    } else if (onlyRunningTask.includes("grafana")) {
+      spinnerTelegrafOne.succeed(chalk.cyan('Telegraf successfully stopped.'));
+    } else if (onlyRunningTask.includes('grafana')) {
+      const spinnerGrafanaOne = ora(chalk.cyan('Stopping Grafana...')).start();
+      spinnerGrafanaOne.color = 'yellow';
+
       const grafanaTaskArn = runningTasks.tasks[0].taskArn;
       await stopGrafanaTask(artemisCluster, grafanaTaskArn);
+      spinnerGrafanaOne.succeed(chalk.cyan('Grafana successfully stopped.'));
     }
   } else if (numberOfRunningTasks === 2) {
     const runningTasks = await ecs
@@ -100,11 +112,23 @@ const stopRemainingTasksRunning = async () => {
     if (
       onlyTelegrafAndGrafanaRunning(firstRunningTaskArn, secondRunningTaskArn)
     ) {
-      console.log("Stop telegraf");
+      const spinnerTelegrafTwo = ora(
+        chalk.cyan('Stopping Telegraf...')
+      ).start();
+      spinnerTelegrafTwo.color = 'yellow';
       await stopTelegrafService(artemisCluster, telegrafServiceArn);
-      console.log("Stop grafana");
+      spinnerTelegrafTwo.succeed(chalk.cyan('Telegraf successfully stopped.'));
+      const spinnerGrafanaTwo = ora(chalk.cyan('Stopping Grafana...')).start();
+      spinnerGrafanaTwo.color = 'yellow';
+
       const grafanaTaskArn = runningTasks.tasks[0].taskArn;
       await stopGrafanaTask(artemisCluster, grafanaTaskArn);
+
+      // bug fix, look for a more elegant solution
+      const grafanaTaskArnOther = runningTasks.tasks[1].taskArn;
+      await stopGrafanaTask(artemisCluster, grafanaTaskArnOther);
+
+      spinnerGrafanaTwo.succeed(chalk.cyan('Grafana successfully stopped.'));
     }
   }
 };

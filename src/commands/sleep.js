@@ -1,4 +1,4 @@
-const { stopRemainingTasksRunning } = require("../utilities/sleepCommand.js");
+const { stopRemainingTasksRunning } = require('../utilities/sleepCommand.js');
 
 function sleep() {
   (async () => {
