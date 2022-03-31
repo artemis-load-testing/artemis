@@ -1,6 +1,6 @@
-![Artemis logo](assets/images/Artemis_logo_on_light.jpg)
+![Artemis logo](assets/images/Artemis_logo_color.png)
 
-## Artemis is an open-source, serverless framework for scalable load testing of your APIs.
+Artemis is an open-source, serverless framework for scalable load testing of your APIs.
 
 ### Artemis requires:
 
@@ -12,10 +12,12 @@
 
 ### Installation
 
-- run `npm install -g artemis load testing`
+- run `npm install -g artemis-load-testing`
 - run `artemis help` to see a list of available commands
 
-```sh
+### Usage
+
+```
 $ artemis help
 Usage: artemis [options] [command]
 
