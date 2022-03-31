@@ -2,6 +2,8 @@
 
 **Artemis is an open-source, serverless framework for scalable load testing of your APIs.**
 
+---
+
 ### Artemis requires:
 
 - an [AWS account](https://portal.aws.amazon.com/gp/aws/developer/registration/index.html?nc2=h_ct&src=default)
