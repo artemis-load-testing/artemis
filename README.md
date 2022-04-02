@@ -1,4 +1,4 @@
-![Artemis logo](assets/images/Artemis_logo_color.png)
+![Artemis logo](https://github.com/artemis-load-testing/artemis/blob/HEAD/assets/images/Artemis_logo_color.png)
 
 **Artemis is an open-source, serverless framework for scalable load testing of your APIs.**
 
