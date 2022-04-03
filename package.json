@@ -1,6 +1,6 @@
 {
   "name": "artemis-load-testing",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "artemis-load-testing",
   "bin": {
     "artemis": "src/index.js"
