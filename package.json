@@ -39,7 +39,11 @@
     "node-fetch": "^3.2.3",
     "ora-classic": "^5.4.2",
     "readline-sync": "^1.4.10",
-    "source-map-support": "^0.5.16"
+    "source-map-support": "^0.5.16",
+    "ts-node": "^9.0.0",
+    "typescript": "~3.9.7",
+    "@types/node": "10.17.27",
+    "aws-cdk": "^2.15.0"
   },
   "homepage": "https://github.com/artemis-load-testing/artemis",
   "license": "MIT",
