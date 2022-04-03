@@ -1,6 +1,6 @@
 {
   "name": "artemis-load-testing",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "artemis-load-testing",
   "bin": {
     "artemis": "src/index.js"
@@ -21,6 +21,11 @@
     "ts-node": "^9.0.0",
     "typescript": "~3.9.7"
   },
+  "files": [
+    "/src",
+    "/src/aws/bin/aws.ts",
+    "/src/aws/lib/aws-stack.ts"
+  ],
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.54.0",
     "@aws-sdk/client-ecs": "^3.54.0",
