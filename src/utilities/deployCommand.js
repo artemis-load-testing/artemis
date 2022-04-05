@@ -31,13 +31,12 @@ const getExistingArtemisDb = async () => {
   return databaseDeployed;
 };
 
-// const cdkPath = path.join(__dirname, '../aws');
-const cdkPath = path.join("__dirname", "../aws");
+const cdkPath = path.join(__dirname, "../aws");
+const cdkPathEscaped = cdkPath.replace(/ /g, "\\ ");
 
 const startDeployment = async () => {
   const stackExists = await artemisStackDeployed();
   const artemisDatabase = await getExistingArtemisDb();
-
   if (stackExists && !!artemisDatabase) {
     console.log("ArtemisAwsStack and artemis-db are already deployed.");
   } else if (!!artemisDatabase) {
@@ -45,17 +44,14 @@ const startDeployment = async () => {
     const spinner = ora(
       chalk.cyan("Deploying ArtemisAwsStack only...")
     ).start();
-
     spinner.color = "yellow";
     fs.readFileSync(`${cdkPath}/config.json`, "utf8");
-
     await exec(
-      `cd ${cdkPath} && cdk synth && cdk bootstrap && cdk deploy --require-approval never`,
+      `cd ${cdkPathEscaped} && cdk synth && cdk bootstrap && cdk deploy --require-approval never`,
       {
         encoding: "utf-8",
       }
     );
-
     spinner.succeed(
       chalk.cyan("Artemis infrastructure on AWS successfully deployed.")
     );
@@ -63,16 +59,13 @@ const startDeployment = async () => {
     const spinner = ora(
       chalk.cyan("Deploying ArtemisAwsStack and artemis-db...")
     ).start();
-
     spinner.color = "yellow";
-
     await exec(
-      `cd ${cdkPath} && cdk synth && cdk bootstrap && cdk deploy --require-approval never`,
+      `cd ${cdkPathEscaped} && cdk synth && cdk bootstrap && cdk deploy --require-approval never`,
       {
         encoding: "utf-8",
       }
     );
-
     spinner.succeed(
       chalk.cyan("Artemis infrastructure on AWS successfully deployed.")
     );
@@ -87,7 +80,7 @@ const setFirstDeployToFalse = async () => {
       let firstDeployStatus = JSON.parse(
         fs.readFileSync(`${cdkPath}/config.json`, "utf8")
       ).firstDeploy;
-      // console.log('File written successfully with value: ', firstDeployStatus);
+      console.log("File written successfully with value: ", firstDeployStatus);
     }
   });
 };
