@@ -50,6 +50,12 @@ const getGrafanaIpAddressFile = async () => {
         chalk.cyan('Click to see the dashboard: ') +
           chalk.green(`http://${data.Body.toString()}:${GRAFANA_PORT_NUM}`)
       );
+      console.log(
+        chalk.cyan('Dashboard login: ') +
+          chalk.yellow('artemis ') +
+          chalk.cyan('- password: ') +
+          chalk.yellow('api_load_testing')
+      );
     }
   });
 };
