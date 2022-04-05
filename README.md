@@ -37,3 +37,8 @@ Commands:
   teardown            Teardown Artemis infrastructure on user's AWS account, retain database.
   help [command]      display help for command
 ```
+
+### Login details for Artemis' Grafana dashboard:
+
+username: `artemis`
+password: `api_load_testing`

@@ -3,11 +3,13 @@ const {
   runTaskLambda,
 } = require('../utilities/startCommand.js');
 
+const { randomId } = require('../aws/utilities/randomId.js');
+
 const ora = require('ora-classic');
 const chalk = require('chalk');
 
 function start(options) {
-  const config = { testId: 'abc123', taskCount: options.taskCount };
+  const config = { testId: randomId(8), taskCount: options.taskCount };
   const testScript = options.path;
 
   (async () => {
@@ -24,7 +26,11 @@ function start(options) {
     await runTaskLambda(config);
     setTimeout(() => {
       spinner.succeed(
-        chalk.cyan('Test started, you can begin visualizing results.')
+        chalk.cyan(
+          "Test started, you're unique test ID is " +
+            chalk.yellow(`${testId}`) +
+            '.\nYou can begin visualizing results.'
+        )
       );
     }, 180000);
   })();
