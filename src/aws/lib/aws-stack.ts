@@ -2,15 +2,11 @@ import {
   aws_s3 as s3,
   aws_ec2 as ec2,
   aws_ecs as ecs,
-  aws_lambda as lambda,
-  aws_servicediscovery as servicediscovery,
   aws_timestream as timestream,
   Stack,
   StackProps,
   RemovalPolicy,
-  Duration,
 } from "aws-cdk-lib";
-import * as path from "path";
 import {
   Effect,
   PolicyDocument,
@@ -20,11 +16,15 @@ import {
   ManagedPolicy,
 } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
+import { RunTaskLambda } from "./run-task-lambda";
+import { StartGrafanaLambda } from "./start-grafana";
+import { StopGrafanaLambda } from "./stop-grafana";
+import { TelegrafService } from "./telegraf-service";
+import { ArtemisTimestreamDB } from "./timestream-db";
 
 export class AwsStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-
     // ROLES
     const runLambdaRole = new Role(this, "runLambdaRole", {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
@@ -138,7 +138,8 @@ export class AwsStack extends Stack {
       autoDeleteObjects: true,
     });
 
-    // Fargate
+    // TASK DEFINITIONS
+    // Artemis-testing
     const fargateTaskDefinition = new ecs.FargateTaskDefinition(
       this,
       "taskdef",
@@ -198,129 +199,52 @@ export class AwsStack extends Stack {
       }),
     });
 
-    // TimestreamDB
+    // Check if first deploy
     const fs = require("fs");
     let firstDeployStatus = JSON.parse(
       fs.readFileSync("config.json", "utf8")
     ).firstDeploy;
 
     if (firstDeployStatus === "true") {
-      const artemisTimestreamDB = new timestream.CfnDatabase(
-        this,
-        "artemis-db",
-        {
-          databaseName: "artemis-db",
-        }
-      );
-
-      artemisTimestreamDB.applyRemovalPolicy(RemovalPolicy.RETAIN);
+      // TimestreamDB
+      const artemisTimestreamDB = new ArtemisTimestreamDB(this, "artemis-db", {
+        databaseName: "artemis-db",
+      });
     }
 
-    // SECURITY GROUPS
-    const telegrafSG = new ec2.SecurityGroup(this, "telegrafSG", {
-      vpc,
-      allowAllOutbound: true,
-      description: "security group for telegraf",
-    });
-
-    telegrafSG.addIngressRule(
-      ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(80),
-      "allow HTTP access from anywhere"
-    );
-
-    telegrafSG.addIngressRule(
-      ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(8186),
-      "allow 8186 access from anywhere"
-    );
-
-    const grafanaSG = new ec2.SecurityGroup(this, "grafanaSG", {
-      vpc,
-      allowAllOutbound: true,
-      description: "security group for grafana",
-    });
-
-    grafanaSG.addIngressRule(
-      ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(80),
-      "allow HTTP access from anywhere"
-    );
-
-    grafanaSG.addIngressRule(
-      ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(3000),
-      "allow 3000 access from anywhere"
-    );
-
     // SERVICES
-    const telegrafService = new ecs.FargateService(this, "artemis-telegraf", {
-      cluster,
+    const telegrafService = new TelegrafService(this, "artemis-telegraf", {
+      vpc: vpc,
+      cluster: cluster,
       taskDefinition: telegrafTaskDefinition,
-      desiredCount: 0,
-      serviceName: "artemis-telegraf",
-      cloudMapOptions: {
-        cloudMapNamespace: cluster.addDefaultCloudMapNamespace({
-          name: "artemis",
-        }),
-        dnsRecordType: servicediscovery.DnsRecordType.A,
-        dnsTtl: Duration.seconds(60),
-        name: "artemis-telegraf",
-      },
-      assignPublicIp: true,
-      securityGroups: [telegrafSG],
     });
 
     // LAMBDAS
-    const runTaskLambda = new lambda.Function(this, "run-task", {
-      handler: "index.handler",
+    const runTaskLambda = new RunTaskLambda(this, "run-task", {
       role: runLambdaRole,
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, "../resources/run-task")
-      ),
-      runtime: lambda.Runtime.NODEJS_14_X,
-      environment: {
-        TASK_CLUSTER: cluster.clusterName,
-        TASK_DEFINITION: fargateTaskDefinition.taskDefinitionArn,
-        VPC_ID: vpc.vpcId,
-        TASK_IMAGE: "artemis-container",
-        BUCKET_NAME: bucket.bucketName,
-        TELEGRAF_SERVICE: telegrafService.serviceName,
-      },
-      timeout: Duration.seconds(180),
+      TASK_CLUSTER: cluster.clusterName,
+      TASK_DEFINITION: fargateTaskDefinition.taskDefinitionArn,
+      VPC_ID: vpc.vpcId,
+      TASK_IMAGE: "artemis-container",
+      BUCKET_NAME: bucket.bucketName,
+      TELEGRAF_SERVICE: "artemis-telegraf",
     });
 
-    const startGrafanaLambda = new lambda.Function(this, "start-grafana", {
-      handler: "index.handler",
+    const startGrafanaLambda = new StartGrafanaLambda(this, "start-grafana", {
       role: runLambdaRole,
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, "../resources/start-grafana")
-      ),
-      runtime: lambda.Runtime.NODEJS_14_X,
-      environment: {
-        TASK_CLUSTER: cluster.clusterName,
-        TASK_DEFINITION: grafanaTaskDefinition.taskDefinitionArn,
-        VPC_ID: vpc.vpcId,
-        GRAFANA_IMAGE: "artemis-grafana",
-        SECURITY_GROUP: grafanaSG.securityGroupId,
-        SUBNETS: vpc.publicSubnets[0].subnetId,
-        BUCKET_NAME: bucket.bucketName,
-      },
-      timeout: Duration.seconds(300),
+      vpc: vpc,
+      TASK_CLUSTER: cluster.clusterName,
+      TASK_DEFINITION: grafanaTaskDefinition.taskDefinitionArn,
+      VPC_ID: vpc.vpcId,
+      GRAFANA_IMAGE: "artemis-grafana",
+      SUBNETS: vpc.publicSubnets[0].subnetId,
+      BUCKET_NAME: bucket.bucketName,
     });
 
-    const stopGrafanaTaskLambda = new lambda.Function(this, "stop-grafana", {
-      handler: "index.handler",
+    const stopGrafanaTaskLambda = new StopGrafanaLambda(this, "stop-grafana", {
       role: runLambdaRole,
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, "../resources/stop-grafana")
-      ),
-      runtime: lambda.Runtime.NODEJS_14_X,
-      environment: {
-        TASK_CLUSTER: cluster.clusterName,
-        TASK_DEFINITION: grafanaTaskDefinition.taskDefinitionArn,
-      },
-      timeout: Duration.seconds(60),
+      TASK_CLUSTER: cluster.clusterName,
+      TASK_DEFINITION: grafanaTaskDefinition.taskDefinitionArn,
     });
   }
 }
