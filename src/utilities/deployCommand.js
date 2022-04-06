@@ -80,7 +80,6 @@ const setFirstDeployToFalse = async () => {
       let firstDeployStatus = JSON.parse(
         fs.readFileSync(`${cdkPath}/config.json`, "utf8")
       ).firstDeploy;
-      console.log("File written successfully with value: ", firstDeployStatus);
     }
   });
 };
