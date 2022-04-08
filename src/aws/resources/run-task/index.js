@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const AWS = require("aws-sdk");
 const ec2 = new AWS.EC2();
 const ecs = new AWS.ECS();
 
@@ -6,7 +6,7 @@ const retrieveSubnets = async (vpcId) => {
   const params = {
     Filters: [
       {
-        Name: 'vpc-id',
+        Name: "vpc-id",
         Values: [vpcId],
       },
     ],
@@ -27,12 +27,12 @@ exports.handler = async (event) => {
   const taskParams = {
     cluster: process.env.TASK_CLUSTER,
     taskDefinition: process.env.TASK_DEFINITION,
-    launchType: 'FARGATE',
+    launchType: "FARGATE",
     count,
     networkConfiguration: {
       awsvpcConfiguration: {
         subnets,
-        assignPublicIp: 'ENABLED',
+        assignPublicIp: "ENABLED",
       },
     },
     overrides: {
@@ -40,10 +40,10 @@ exports.handler = async (event) => {
         {
           name: process.env.TASK_IMAGE,
           environment: [
-            { name: 'ORIGIN_TIMESTAMP', value: String(event.originTimestamp) },
-            { name: 'BUCKET_NAME', value: process.env.BUCKET_NAME },
-            { name: 'TASK_COUNT', value: count },
-            { name: 'TEST_ID', value: testId },
+            { name: "ORIGIN_TIMESTAMP", value: String(event.originTimestamp) },
+            { name: "BUCKET_NAME", value: process.env.BUCKET_NAME },
+            { name: "TASK_COUNT", value: count },
+            { name: "TEST_ID", value: testId },
           ],
         },
       ],
@@ -59,18 +59,17 @@ exports.handler = async (event) => {
       })
       .promise();
 
-    // count = 10
-    const taskBatchLoops = Math.ceil(count / AWSTaskCountLimit); // 1
-    const NTasksLeftToRun = count % AWSTaskCountLimit; // 0
+    const taskBatchLoops = Math.ceil(count / AWSTaskCountLimit);
+    const NTasksLeftToRun = count % AWSTaskCountLimit;
 
-    taskParams.count = AWSTaskCountLimit; // 10
+    taskParams.count = AWSTaskCountLimit;
     let instanceTaskPromises = [];
 
     for (let i = 1; i <= taskBatchLoops - 1; i++) {
       instanceTaskPromises.push(ecs.runTask(taskParams).promise());
     }
 
-    console.log('taskArrLength:', instanceTaskPromises.length);
+    console.log("taskArrLength:", instanceTaskPromises.length);
 
     if (NTasksLeftToRun === 0) {
       taskParams.count = AWSTaskCountLimit;
@@ -79,11 +78,11 @@ exports.handler = async (event) => {
     }
 
     instanceTaskPromises.push(ecs.runTask(taskParams).promise());
-    console.log('taskArrLength:', instanceTaskPromises.length);
+    console.log("taskArrLength:", instanceTaskPromises.length);
 
     await Promise.allSettled(instanceTaskPromises);
 
-    console.log('Tasks started');
+    console.log("Tasks started");
   } catch (error) {
     console.log(error);
   }
