@@ -30,11 +30,12 @@ Options:
 
 Commands:
   run-test [options]  Run the test script concurrently this number of times.
-  grafana-start       Start the Artemis Grafana dashboard
-  grafana-stop        Stop the Artemis Grafana dashboard
+  grafana-start       Start the Artemis Grafana dashboard.
+  grafana-stop        Stop the Artemis Grafana dashboard.
   deploy              Deploy Artemis infrastructure on user's AWS account.
   sleep               Stop all support container tasks for minimal AWS usage charges.
-  teardown            Teardown Artemis infrastructure on user's AWS account, retain database.
+  teardown            Teardown Artemis infrastructure on user's AWS account, retain Artemis database.
+  destroy-db          Delete the Artemis database.
   help [command]      display help for command
 ```
 
