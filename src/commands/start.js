@@ -1,9 +1,13 @@
+const gradient = require('gradient-string');
+
 const {
   uploadTestScript,
   runTaskLambda,
 } = require('../utilities/startCommand.js');
 
 const { randomId } = require('../aws/utilities/randomId.js');
+
+const { logo } = require('../constants/logo.js');
 
 const ora = require('ora-classic');
 const chalk = require('chalk');
@@ -14,6 +18,8 @@ function start(options) {
 
   (async () => {
     const { testId, taskCount } = config;
+
+    console.log(gradient.summer(logo));
 
     await uploadTestScript(testScript);
     console.log(chalk.green('Test script successfully uploaded.'));

@@ -1,6 +1,6 @@
 {
   "name": "artemis-load-testing",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "author": "artemis-load-testing",
   "bin": {
     "artemis": "src/index.js"
@@ -34,18 +34,19 @@
     "@aws-sdk/client-lambda": "^3.54.0",
     "@aws-sdk/client-s3": "^3.32.0",
     "@aws-sdk/client-sfn": "^3.54.0",
+    "@types/node": "10.17.27",
     "aws-cdk": "^2.15.0",
     "aws-cdk-lib": "^2.15.0",
     "aws-sdk": "^2.1098.0",
     "commander": "^9.1.0",
     "constructs": "^10.0.0",
+    "gradient-string": "^2.0.0",
     "node-fetch": "^3.2.3",
     "ora-classic": "^5.4.2",
     "readline-sync": "^1.4.10",
     "source-map-support": "^0.5.16",
     "ts-node": "^9.0.0",
-    "typescript": "~3.9.7",
-    "@types/node": "10.17.27"
+    "typescript": "~3.9.7"
   },
   "engines": {
     "node": ">=14.0.0"

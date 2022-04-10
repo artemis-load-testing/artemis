@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const gradient = require('gradient-string');
 const execSync = require('child_process').execSync;
 const userRegion = execSync('aws configure get region').toString().trim();
 AWS.config.update({ region: userRegion });
@@ -14,6 +15,8 @@ const chalk = require('chalk');
 
 const { promisify } = require('util');
 const exec = promisify(require('child_process').exec);
+
+const { logo } = require('../constants/logo.js');
 
 const artemisStackDeployed = async () => {
   const allStacks = await cloudformation.describeStacks().promise();
@@ -35,6 +38,8 @@ const cdkPath = path.join(__dirname, '../aws');
 const cdkPathEscaped = cdkPath.replace(/ /g, '\\ ');
 
 const startDeployment = async () => {
+  console.log(gradient.summer(logo));
+
   const stackExists = await artemisStackDeployed();
   const artemisDatabase = await getExistingArtemisDb();
   if (stackExists && !!artemisDatabase) {
