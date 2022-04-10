@@ -30,7 +30,7 @@ cli
 
 cli
   .command('deploy')
-  .description("Deploy Artemis infrastructure on user's AWS account.")
+  .description("Deploy Artemis infrastructure on the user's AWS account.")
   .action(deploy);
 
 cli
