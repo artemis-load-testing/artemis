@@ -33,7 +33,7 @@ function start(options) {
     setTimeout(() => {
       spinner.succeed(
         chalk.cyan(
-          "Test started, you're unique test ID is " +
+          'Test started, your unique test ID is ' +
             chalk.yellow(`${testId}`) +
             '.\nYou can begin visualizing results.'
         )
