@@ -1,8 +1,8 @@
 const { startDatabaseDeletion } = require("../utilities/destroydbCommand.js");
 
-function destroydb() {
+function destroydb(options) {
   (async () => {
-    await startDatabaseDeletion();
+    await startDatabaseDeletion(options);
   })();
 }
 

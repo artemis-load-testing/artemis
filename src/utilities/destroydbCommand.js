@@ -1,15 +1,15 @@
-const AWS = require('aws-sdk');
-const execSync = require('child_process').execSync;
-const userRegion = execSync('aws configure get region').toString().trim();
+const AWS = require("aws-sdk");
+const execSync = require("child_process").execSync;
+const userRegion = execSync("aws configure get region").toString().trim();
 AWS.config.update({ region: userRegion });
 const timestreamwrite = new AWS.TimestreamWrite();
-const timestreamDbName = 'artemis-db';
-const fs = require('fs');
-const path = require('path');
-const cdkPath = path.join(__dirname, '../aws');
-const ora = require('ora-classic');
-const chalk = require('chalk');
-const readlineSync = require('readline-sync');
+const timestreamDbName = "artemis-db";
+const fs = require("fs");
+const path = require("path");
+const cdkPath = path.join(__dirname, "../aws");
+const ora = require("ora-classic");
+const chalk = require("chalk");
+const readlineSync = require("readline-sync");
 
 const pause = (time) => {
   return new Promise((resolve) => setTimeout(resolve, time)); // in ms
@@ -21,7 +21,7 @@ const setFirstDeployToTrue = async () => {
     if (err) console.log(err);
     else {
       let firstDeployStatus = JSON.parse(
-        fs.readFileSync(`${cdkPath}/config.json`, 'utf8')
+        fs.readFileSync(`${cdkPath}/config.json`, "utf8")
       ).firstDeploy;
     }
   });
@@ -49,7 +49,7 @@ const deleteTables = async (dbName, tables) => {
     spinner = ora(
       chalk.cyan(`Deleting ${table.TableName} table of ${dbName} database...`)
     ).start();
-    spinner.color = 'yellow';
+    spinner.color = "yellow";
     await deleteTable(dbName, table.TableName);
     spinner.succeed(
       chalk.cyan(`${table.TableName} table of ${dbName} has been deleted.`)
@@ -61,7 +61,7 @@ const deleteDatabase = async (dbName) => {
   const spinner = ora(
     chalk.cyan(`Deleting ${timestreamDbName} database...`)
   ).start();
-  spinner.color = 'yellow';
+  spinner.color = "yellow";
 
   await timestreamwrite
     .deleteDatabase({
@@ -95,35 +95,40 @@ const deleteTablesAndDatabase = async () => {
   }
 };
 
-const startDatabaseDeletion = async () => {
-  const USER_INPUT = ['y', 'n', 'yes', 'no'];
+const startDatabaseDeletion = async (options) => {
+  const USER_INPUT = ["y", "n", "yes", "no"];
   let confirmDbDelete;
 
-  do {
-    confirmDbDelete = readlineSync.question(
-      chalk.cyan(
-        'Are you sure you want to delete the Artemis database? (y/n)\n'
-      )
-    );
-    confirmDbDelete = confirmDbDelete.toLowerCase().trim();
+  if (options.yes) {
+    await deleteTablesAndDatabase();
+    await setFirstDeployToTrue();
+  } else {
+    do {
+      confirmDbDelete = readlineSync.question(
+        chalk.cyan(
+          "Are you sure you want to delete the Artemis database? (y/n)\n"
+        )
+      );
+      confirmDbDelete = confirmDbDelete.toLowerCase().trim();
 
-    if (
-      USER_INPUT.includes(confirmDbDelete) &&
-      confirmDbDelete.startsWith('y')
-    ) {
-      await deleteTablesAndDatabase();
-      await setFirstDeployToTrue();
-    } else if (
-      USER_INPUT.includes(confirmDbDelete) &&
-      confirmDbDelete.startsWith('n')
-    ) {
-      console.log(chalk.yellow('Database deletion canceled.'));
-    } else {
-      console.log(chalk.cyan('Please provide the correct input.'));
-      await pause(1500);
-      console.clear();
-    }
-  } while (!USER_INPUT.includes(confirmDbDelete));
+      if (
+        USER_INPUT.includes(confirmDbDelete) &&
+        confirmDbDelete.startsWith("y")
+      ) {
+        await deleteTablesAndDatabase();
+        await setFirstDeployToTrue();
+      } else if (
+        USER_INPUT.includes(confirmDbDelete) &&
+        confirmDbDelete.startsWith("n")
+      ) {
+        console.log(chalk.yellow("Database deletion canceled."));
+      } else {
+        console.log(chalk.cyan("Please provide the correct input."));
+        await pause(1500);
+        console.clear();
+      }
+    } while (!USER_INPUT.includes(confirmDbDelete));
+  }
 };
 
 module.exports = { startDatabaseDeletion };

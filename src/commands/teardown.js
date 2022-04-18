@@ -1,8 +1,8 @@
-const { startTeardown } = require('../utilities/teardownCommand.js');
+const { startTeardown } = require("../utilities/teardownCommand.js");
 
-function teardown() {
+function teardown(options) {
   (async () => {
-    await startTeardown();
+    await startTeardown(options);
   })();
 }
 
