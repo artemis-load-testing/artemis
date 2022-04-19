@@ -8,6 +8,7 @@ const deploy = require("./commands/deploy.js");
 const teardown = require("./commands/teardown.js");
 const sleep = require("./commands/sleep.js");
 const destroyDb = require("./commands/destroydb.js");
+const dashboard = require("./commands/dashboard.js");
 
 cli.description("Artemis API Load Testing CLI");
 cli.name("artemis");
@@ -54,5 +55,10 @@ cli
   .option("-y, --yes", "Execute destroy database without user confirmation.")
   .description("Delete the Artemis database.")
   .action(destroyDb);
+
+cli
+  .command("admin-dashboard")
+  .description("Start admin dashboard UI for CLI functionality.")
+  .action(dashboard);
 
 cli.parse(process.argv);

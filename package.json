@@ -42,6 +42,7 @@
     "constructs": "^10.0.0",
     "gradient-string": "^2.0.0",
     "node-fetch": "^3.2.3",
+    "open": "^8.4.0",
     "ora-classic": "^5.4.2",
     "readline-sync": "^1.4.10",
     "source-map-support": "^0.5.16",
