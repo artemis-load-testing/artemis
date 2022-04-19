@@ -1,0 +1,26 @@
+{
+  "files": {
+    "main.css": "/static/css/main.1d14516f.chunk.css",
+    "main.js": "/static/js/main.e3ea9667.chunk.js",
+    "main.js.map": "/static/js/main.e3ea9667.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.ebd84d49.js",
+    "runtime-main.js.map": "/static/js/runtime-main.ebd84d49.js.map",
+    "static/css/2.54208fce.chunk.css": "/static/css/2.54208fce.chunk.css",
+    "static/js/2.3347f1d1.chunk.js": "/static/js/2.3347f1d1.chunk.js",
+    "static/js/2.3347f1d1.chunk.js.map": "/static/js/2.3347f1d1.chunk.js.map",
+    "index.html": "/index.html",
+    "static/css/2.54208fce.chunk.css.map": "/static/css/2.54208fce.chunk.css.map",
+    "static/css/main.1d14516f.chunk.css.map": "/static/css/main.1d14516f.chunk.css.map",
+    "static/js/2.3347f1d1.chunk.js.LICENSE.txt": "/static/js/2.3347f1d1.chunk.js.LICENSE.txt",
+    "static/js/main.e3ea9667.chunk.js.LICENSE.txt": "/static/js/main.e3ea9667.chunk.js.LICENSE.txt",
+    "static/media/Artemis_graphic_color.17f76ea6.png": "/static/media/Artemis_graphic_color.17f76ea6.png",
+    "static/media/paper-dashboard.scss?v=1.3.0": "/static/media/nucleo-icons.ec16bc4c.woff2"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.ebd84d49.js",
+    "static/css/2.54208fce.chunk.css",
+    "static/js/2.3347f1d1.chunk.js",
+    "static/css/main.1d14516f.chunk.css",
+    "static/js/main.e3ea9667.chunk.js"
+  ]
+}
