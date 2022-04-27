@@ -1,6 +1,6 @@
 {
   "name": "artemis-load-testing",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "artemis-load-testing",
   "bin": {
     "artemis": "src/index.js"
@@ -26,7 +26,8 @@
     "/src/aws/lib/start-grafana.ts",
     "/src/aws/lib/stop-grafana.ts",
     "/src/aws/lib/telegraf-service.ts",
-    "/src/aws/lib/timestream-db.ts"
+    "/src/aws/lib/timestream-db.ts",
+    "/admin-dashboard"
   ],
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.54.0",
