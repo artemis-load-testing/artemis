@@ -30,6 +30,7 @@ Options:
 
 Commands:
   run-test [options]  Run the test script concurrently this number of times.
+  admin-dashboard     Launch the Artemis GUI dashbaord.
   grafana-start       Start the Artemis Grafana dashboard.
   grafana-stop        Stop the Artemis Grafana dashboard.
   deploy              Deploy Artemis infrastructure on the user's AWS account.
